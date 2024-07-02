@@ -1,0 +1,45 @@
+/* MainLayout.css */
+.header {
+    display: flex;
+    align-items: center;
+  }
+  
+  .logo {
+    width: 120px;
+    height: 31px;
+    background: rgba(255, 255, 255, 0.2);
+    margin: 16px 24px 16px 0;
+    float: left;
+  }
+  
+  .menu-button {
+    display: none;
+  }
+  
+  @media (max-width: 768px) {
+    .menu-button {
+      display: block;
+    }
+  }
+
+
+  @media (max-width: 768px) {
+    .custom-drawer .ant-drawer-body {
+      padding: 0;
+    }
+  }
+
+  .container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+  
+  @media (max-width: 768px) {
+    .container {
+      max-width: 100%;
+      padding: 0 5px;
+    }
+  }
+
+  
