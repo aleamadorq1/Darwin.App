@@ -57,6 +57,7 @@ const SupplierList = () => {
       title: 'Name',
       dataIndex: 'supplierName',
       key: 'supplierName',
+      style: { width: "20em"},
     },
     {
       title: 'Contact Info',

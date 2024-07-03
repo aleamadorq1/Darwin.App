@@ -4,6 +4,7 @@ import { useParams } from 'react-router-dom';
 import { LeftOutlined, RightOutlined } from '@ant-design/icons';
 import ProjectForm from './ProjectForm';
 import ProjectCostsForm from './ProjectCostsForm';
+import ProjectReviewForm from './ProjectReviewForm';
 
 const { Step } = Steps;
 
@@ -32,7 +33,7 @@ const ProjectCreation = () => {
     },
     {
       title: 'Step 3',
-      content: 'Step 3 content placeholder',
+      content: <ProjectReviewForm projectId={projectId} setLoading={setLoading}/>,
     },
     {
       title: 'Step 4',

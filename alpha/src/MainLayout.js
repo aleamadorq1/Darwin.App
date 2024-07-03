@@ -49,7 +49,7 @@ const MainLayout = ({ children }) => {
       icon: <UserOutlined />,
       label: 'Start',
       children: [
-        { key: '1', label: <Link to="/home">Home</Link> },
+        { key: '1', label: <Link to="/">Home</Link> },
         { key: '2', label: <Link to="/projectedit">New Project</Link> },
       ],
     },
@@ -105,9 +105,8 @@ const MainLayout = ({ children }) => {
             mode="horizontal"
             defaultSelectedKeys={['1']}
             items={[
-              { key: '1', label: <Link to="/home">Home</Link> },
-              { key: '2', label: <Link to="/clients">Clients</Link> },
-              { key: '3', label: <Link to="/about">About</Link> },
+              { key: '1', label: <Link to="/">Home</Link> },
+              { key: '2', label: <Link to="/modules">Clients</Link> },
             ]}
           />
         )}
