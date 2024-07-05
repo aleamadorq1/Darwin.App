@@ -32,8 +32,8 @@ const ProjectCreation = () => {
       content: <ProjectCostsForm form={costForm} projectId={projectId} setLoading={setLoading} />,
     },
     {
-      title: 'Step 3',
-      content: <ProjectReviewForm projectId={projectId} setLoading={setLoading}/>,
+      title: 'Review',
+      content: <ProjectReviewForm projectId={projectId} setLoading={setLoading} />,
     },
     {
       title: 'Step 4',
@@ -43,9 +43,9 @@ const ProjectCreation = () => {
 
   const next = () => {
     if (current === 0) {
-      handleFormSubmission(projectForm);
+      handleFormValidation(projectForm, true);
     } else if (current === 1) {
-      handleFormSubmission(costForm);
+      handleFormValidation(costForm, true);
     } else {
       setCurrent(current + 1);
     }
@@ -70,13 +70,14 @@ const ProjectCreation = () => {
       });
   };
 
-  const handleFormSubmission = (form) => {
+  const handleFormValidation = (form, goToNextStep = false) => {
     setLoading(true);
     form.validateFields()
       .then(() => {
-        form.submit(); // Trigger form submit manually
+        if (goToNextStep) {
+          setCurrent(current + 1);
+        }
         setLoading(false);
-        setCurrent(current + 1);
       })
       .catch(errorInfo => {
         console.log('Validation Failed:', errorInfo);
@@ -87,28 +88,28 @@ const ProjectCreation = () => {
 
   return (
     <>
-    <Spin spinning={loading} fullscreen />
-      <div style={{ width: '100%', height: '100%' }}>
-        <Steps current={current}>
-          {steps.map((item, index) => (
-            <Step key={index} title={item.title} />
-          ))}
-        </Steps>
-        <div className="steps-content" style={{ marginTop: '16px' }}>
-          {steps[current].content}
+      <Spin spinning={loading} percent={"auto"} fullscreen/>
+        <div style={{ width: '100%', height: '100%' }}>
+          <Steps current={current}>
+            {steps.map((item, index) => (
+              <Step key={index} title={item.title} />
+            ))}
+          </Steps>
+          <div className="steps-content" style={{ marginTop: '16px' }}>
+            {steps[current].content}
+          </div>
+          <div className="steps-action" style={{ marginTop: '24px', display: 'flex', justifyContent: 'space-between' }}>
+            {current > 0 && (
+              <Button onClick={prev} icon={<LeftOutlined />}>Previous</Button>
+            )}
+            {current < steps.length - 1 && (
+              <Button type="primary" onClick={next} icon={<RightOutlined />} style={{ marginLeft: 'auto' }} disabled={current === 0 && !projectCreated}>Next</Button>
+            )}
+            {current === steps.length - 1 && (
+              <Button type="primary" onClick={handleFinish} icon={<RightOutlined />} style={{ marginLeft: 'auto' }}>Finish</Button>
+            )}
+          </div>
         </div>
-        <div className="steps-action" style={{ marginTop: '24px', display: 'flex', justifyContent: 'space-between' }}>
-          {current > 0 && (
-            <Button onClick={prev} icon={<LeftOutlined />}>Previous</Button>
-          )}
-          {current < steps.length - 1 && (
-            <Button type="primary" onClick={next} icon={<RightOutlined />} style={{ marginLeft: 'auto' }} disabled={current === 0 && !projectCreated}>Next</Button>
-          )}
-          {current === steps.length - 1 && (
-            <Button type="primary" onClick={handleFinish} icon={<RightOutlined />} style={{ marginLeft: 'auto' }}>Finish</Button>
-          )}
-        </div>
-      </div>
     </>
   );
 };
