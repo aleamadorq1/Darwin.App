@@ -23,7 +23,7 @@ const ModuleManager = () => {
   const fetchModules = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('https://localhost:7115/api/modules');
+      const response = await axios.get('https://localhost:7115/api/modules/index');
       setModules(response.data);
     } catch (error) {
       console.error('There was an error fetching the modules!', error);
@@ -116,9 +116,16 @@ const ModuleManager = () => {
       ...getColumnSearchProps('moduleName'),
     },
     {
+      title: 'System',
+      dataIndex: 'moduleSystem',
+      key: 'moduleSystem',
+      ...getColumnSearchProps('moduleSystem'),
+    },
+    {
       title: 'Last Modified',
       dataIndex: 'lastModified',
       key: 'lastModified',
+      responsive: ['md'], // Hide on small screens
       render: (text) => new Date(text).toLocaleString(),
     },
     {

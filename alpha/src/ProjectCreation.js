@@ -4,7 +4,7 @@ import { useParams } from 'react-router-dom';
 import { LeftOutlined, RightOutlined } from '@ant-design/icons';
 import ProjectForm from './ProjectForm';
 import ProjectCostsForm from './ProjectCostsForm';
-import ProjectReviewForm from './ProjectReviewForm';
+import ProjectReview from './ProjectReviewForm';
 
 const { Step } = Steps;
 
@@ -24,7 +24,7 @@ const ProjectCreation = () => {
 
   const steps = [
     {
-      title: 'Project Info',
+      title: 'General',
       content: <ProjectForm form={projectForm} onSave={() => setProjectCreated(true)} setLoading={setLoading} />,
     },
     {
@@ -33,7 +33,7 @@ const ProjectCreation = () => {
     },
     {
       title: 'Review',
-      content: <ProjectReviewForm projectId={projectId} setLoading={setLoading} />,
+      content: <ProjectReview projectId={projectId} setLoading={setLoading} />,
     },
     {
       title: 'Step 4',

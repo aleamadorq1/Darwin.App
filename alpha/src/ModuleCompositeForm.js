@@ -14,6 +14,7 @@ const ModuleCompositeForm = ({ form, onCancel, isEditing, initialValues, fetchMo
     fetchModules();
     if (isEditing && initialValues) {
       const moduleDetails = (initialValues.moduleCompositeDetails || []).map(detail => ({
+        moduleCompositeDetailId: detail.moduleCompositeDetailId,
         moduleId: detail.moduleId,
         moduleName: detail.moduleName,
         quantity: detail.quantity,
@@ -41,6 +42,7 @@ const ModuleCompositeForm = ({ form, onCancel, isEditing, initialValues, fetchMo
   const onFinish = async (values) => {
     const moduleCompositeData = {
       ...values,
+      moduleCompositeId: isEditing ? initialValues.moduleCompositeId : 0,
       moduleCompositeDetails: values.moduleCompositeDetails.map((detail, index) => ({
         moduleCompositeDetailId: isEditing ? initialValues.moduleCompositeDetails?.[index]?.moduleCompositeDetailId || 0 : 0,
         moduleId: detail.moduleId,
@@ -127,7 +129,7 @@ const ModuleCompositeForm = ({ form, onCancel, isEditing, initialValues, fetchMo
                 <MinusCircleOutlined onClick={() => remove(name)} />
               </Space>
             ))}
-            <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />} style={{marginBottom:10}}>
+            <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />} style={{ marginBottom: 10 }}>
               Add Module
             </Button>
           </>

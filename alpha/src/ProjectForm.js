@@ -4,7 +4,7 @@ import { Form, Input, Button, DatePicker, InputNumber, Select, Card, Typography,
 import moment from 'moment';
 import axios from 'axios';
 import GoogleMapsComponent from './GoogleMapsComponent'; // Adjust the import path as needed
-import { GoogleOutlined, EnvironmentOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import { GoogleOutlined, EnvironmentOutlined, InfoCircleOutlined, SaveOutlined } from '@ant-design/icons';
 
 const { TextArea } = Input;
 const { Option } = Select;
@@ -224,9 +224,11 @@ const ProjectForm = ({ form, onSave, setLoading }) => {
         </Form.Item>
 
         <Form.Item>
-          <Button type="primary" htmlType="submit" style={{ width: '100%' }}>
-            {isEditMode ? 'Update Project Info' : 'Save Project Info'}
-          </Button>
+          <div style={{ textAlign: 'right', marginTop: 16}}>
+            <Button type="primary" htmlType="submit" icon={<SaveOutlined />}>
+            Save
+            </Button>
+          </div>
         </Form.Item>
       </Form>
       <GoogleMapsComponent

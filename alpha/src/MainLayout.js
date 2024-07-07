@@ -93,7 +93,8 @@ const MainLayout = ({ children }) => {
         {isMobile ? (
           <Button
             className="menu-button"
-            type="primary"
+            type="dashed"
+            ghost
             onClick={showDrawer}
             style={{ marginLeft: 'auto' }}
           >
@@ -149,7 +150,7 @@ const MainLayout = ({ children }) => {
               style={{
                 padding: 24,
                 margin: 0,
-                minHeight: 280,
+                minHeight: 70,
               }}
             >
               {children}

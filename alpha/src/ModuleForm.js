@@ -8,6 +8,7 @@ const { Option } = Select;
 const ModuleForm = ({ form, onCancel, isEditing, initialValues, fetchModules }) => {
   const [laborOptions, setLaborOptions] = useState([]);
   const [materialOptions, setMaterialOptions] = useState([]);
+  const [systemOptions, setSystemOptions] = useState([]);
   const [materialUOMs, setMaterialUOMs] = useState({});
   const [loading, setLoading] = useState(false);
   const [formSubmitted, setFormSubmitted] = useState(false);
@@ -56,9 +57,18 @@ const ModuleForm = ({ form, onCancel, isEditing, initialValues, fetchModules }) 
     }
   }, []);
 
+  const fetchSystemOptions = useCallback(async () => {
+    try {
+      const response = await axios.get('https://localhost:7115/api/system');
+      setSystemOptions(response.data);
+    } catch (error) {
+      console.error('Error fetching system options:', error);
+    }
+  }, []);
+
   const fetchOptions = useCallback(async () => {
-    await Promise.all([fetchLaborOptions(), fetchMaterialOptions()]);
-  }, [fetchLaborOptions, fetchMaterialOptions]);
+    await Promise.all([fetchLaborOptions(), fetchMaterialOptions(), fetchSystemOptions()]);
+  }, [fetchLaborOptions, fetchMaterialOptions, fetchSystemOptions]);
 
   const fetchModuleDetails = useCallback(async (moduleId) => {
     setLoading(true);
@@ -72,10 +82,10 @@ const ModuleForm = ({ form, onCancel, isEditing, initialValues, fetchModules }) 
       form.setFieldsValue({
         moduleId: moduleResponse.data.moduleId,
         moduleName: moduleResponse.data.moduleName,
-        moduleType: moduleResponse.data.moduleType,
+        systemId: moduleResponse.data.systemId,
         description: moduleResponse.data.description,
-        labor: Array.isArray(laborResponse.data) ? laborResponse.data.map(l => ({ laborId: l.laborId, quantity: l.hoursRequired })) : [],
-        materials: Array.isArray(materialsResponse.data) ? materialsResponse.data.map(m => ({ materialId: m.materialId, quantity: m.quantity })) : [],
+        labor: Array.isArray(laborResponse.data) ? laborResponse.data.map(l => ({ laborId: l.laborId, quantity: l.hoursRequired, moduleLaborId:l.moduleLaborId })) : [],
+        materials: Array.isArray(materialsResponse.data) ? materialsResponse.data.map(m => ({ materialId: m.materialId, quantity: m.quantity, moduleMaterialId:m.moduleMaterialId })) : [],
       });
 
       // Set UOMs for materials from existing materialOptions
@@ -131,21 +141,31 @@ const ModuleForm = ({ form, onCancel, isEditing, initialValues, fetchModules }) 
     if (formSubmitted) return;
     setFormSubmitted(true);
 
-    const { moduleId, moduleName, moduleType, description, labor, materials } = values;
+    const { moduleId, moduleName, systemId, description, labor, materials } = values;
     const moduleData = {
       moduleId,
+      projectId: initialValues?.projectId || 0,
       moduleName,
-      moduleType,
+      moduleSystem: systemOptions.find(system => system.systemId === systemId)?.description || '',
+      systemId,
       description,
-      ModulesLabors: labor.map(l => ({
+      total: initialValues?.total || 0,
+      moduleMaterials: materials.map(m => ({
+        moduleMaterialId: m.moduleMaterialId || 0,
         moduleId,
-        laborId: l.laborId,
-        hoursRequired: l.quantity,
-      })),
-      ModulesMaterials: materials.map(m => ({
-        moduleId,
+        moduleName,
         materialId: m.materialId,
+        materialName: materialOptions.flatMap(option => option.children).find(mat => mat.value === m.materialId)?.title || '',
         quantity: m.quantity,
+      })),
+      moduleLabors: labor.map(l => ({
+        moduleLaborId: l.moduleLaborId || 0,
+        moduleId,
+        moduleName,
+        laborId: l.laborId,
+        laborType: laborOptions.find(lab => lab.laborId === l.laborId)?.laborType || '',
+        hoursRequired: l.quantity,
+        hourlyRate: initialValues?.hourlyRate || 0
       })),
     };
 
@@ -177,10 +197,10 @@ const ModuleForm = ({ form, onCancel, isEditing, initialValues, fetchModules }) 
       initialValues={{
         moduleId: initialValues?.moduleId || null,
         moduleName: initialValues?.moduleName || '',
-        moduleType: initialValues?.moduleType || '',
+        systemId: initialValues?.systemId || null,
         description: initialValues?.description || '',
-        labor: initialValues?.ModulesLabors || [],
-        materials: initialValues?.ModulesMaterials || []
+        labor: initialValues?.moduleLabors || [],
+        materials: initialValues?.moduleMaterials || []
       }}
     >
       {isEditing && (
@@ -202,11 +222,17 @@ const ModuleForm = ({ form, onCancel, isEditing, initialValues, fetchModules }) 
       </Form.Item>
 
       <Form.Item
-        name="moduleType"
-        label="Module Type"
-        rules={[{ required: true, message: 'Please enter the module type' }]}
+        name="systemId"
+        label="System"
+        rules={[{ required: true, message: 'Please select a system' }]}
       >
-        <Input placeholder="Please enter the module type" />
+        <Select placeholder="Select system">
+          {systemOptions.map((system) => (
+            <Option key={system.systemId} value={system.systemId}>
+              {system.description}
+            </Option>
+          ))}
+        </Select>
       </Form.Item>
 
       <Form.Item

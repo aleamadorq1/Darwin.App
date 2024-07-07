@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Typography, Divider, List, Card, Row, Col, Tooltip, Avatar, Spin } from 'antd';
+import { Typography, Divider, List, Card, Row, Col, Tooltip, Avatar, Spin, Input } from 'antd';
 import { FileAddTwoTone, FileTextTwoTone, FileWordTwoTone, FileExcelTwoTone, FilePptTwoTone } from '@ant-design/icons';
 import { useNavigate, Link } from 'react-router-dom';
 import sunImage from './assets/sun.png'; // Path to your sun image
 import moonImage from './assets/moon.png'; // Path to your moon image
 
 const { Title, Text } = Typography;
+const { Search } = Input;
 
 const HomePage = () => {
   const [recentProjects, setRecentProjects] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [image, setImage] = useState(sunImage); // Default to sun image
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -39,6 +41,14 @@ const HomePage = () => {
         setLoading(false);
       });
   }, []);
+
+  const handleSearch = (value) => {
+    setSearchQuery(value);
+  };
+
+  const filteredProjects = recentProjects
+    .filter(project => project.projectName.toLowerCase().includes(searchQuery.toLowerCase()))
+    .slice(0, 5);
 
   const projectCards = [
     {
@@ -91,13 +101,20 @@ const HomePage = () => {
         ))}
       </Row>
       <Divider />
-      <Title level={4}>Recent Projects</Title>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Title level={4}>Recent Projects</Title>
+        <Search
+          placeholder="Search projects"
+          onSearch={handleSearch}
+          style={{ width: 200 }}
+        />
+      </div>
       {loading ? (
         <Spin size="large" />
       ) : (
         <List
           itemLayout="horizontal"
-          dataSource={recentProjects}
+          dataSource={filteredProjects}
           renderItem={item => {
             // Check if item is defined and contains the expected properties
             if (!item || typeof item !== 'object' || !item.projectName || !item.clientName) {

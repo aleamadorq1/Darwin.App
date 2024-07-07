@@ -1,17 +1,18 @@
 // src/ClientTable.js
-import React, { useEffect, useState } from 'react';
-import { Table, Button, Popconfirm, message, Typography, Divider } from 'antd';
-import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import React, { useEffect, useState, useRef } from 'react';
+import { Table, Button, Popconfirm, message, Typography, Divider, Input, Space } from 'antd';
+import { EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons';
 import axios from 'axios';
 import ClientForm from './ClientForm';
 
 const { Title, Text } = Typography;
 
-const ClientList= () => {
+const ClientList = () => {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(false);
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
+  const searchInputRef = useRef(null);
 
   useEffect(() => {
     fetchClients();
@@ -52,17 +53,64 @@ const ClientList= () => {
     fetchClients(); // Refresh the list after save
   };
 
+  const getColumnSearchProps = (dataIndex) => ({
+    filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
+      <div style={{ padding: 8 }}>
+        <Input
+          ref={searchInputRef}
+          placeholder={`Search ${dataIndex}`}
+          value={selectedKeys[0]}
+          onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+          onPressEnter={() => handleSearch(selectedKeys, confirm, dataIndex)}
+          style={{ marginBottom: 8, display: 'block' }}
+        />
+        <Space>
+          <Button
+            type="primary"
+            onClick={() => handleSearch(selectedKeys, confirm, dataIndex)}
+            icon={<SearchOutlined />}
+            size="small"
+            style={{ width: 90 }}
+          >
+            Search
+          </Button>
+          <Button onClick={() => handleReset(clearFilters)} size="small" style={{ width: 90 }}>
+            Reset
+          </Button>
+        </Space>
+      </div>
+    ),
+    filterIcon: (filtered) => <SearchOutlined style={{ color: filtered ? '#1890ff' : undefined }} />,
+    onFilter: (value, record) => record[dataIndex].toString().toLowerCase().includes(value.toLowerCase()),
+    onFilterDropdownVisibleChange: (visible) => {
+      if (visible) {
+        setTimeout(() => searchInputRef.current?.select(), 100);
+      }
+    },
+  });
+
+  const handleSearch = (selectedKeys, confirm, dataIndex) => {
+    confirm();
+  };
+
+  const handleReset = (clearFilters) => {
+    clearFilters();
+    fetchClients(); // Reset to fetch all clients
+  };
+
   const columns = [
     {
       title: 'Name',
       dataIndex: 'clientName',
       key: 'clientName',
+      ...getColumnSearchProps('clientName'),
     },
     {
       title: 'Contact Info',
       dataIndex: 'contactInfo',
       key: 'contactInfo',
       responsive: ['md'], // Hide on small screens
+      ...getColumnSearchProps('contactInfo'),
     },
     {
       title: 'Address',
@@ -81,16 +129,16 @@ const ClientList= () => {
       key: 'actions',
       render: (text, record) => (
         <>
-        <Button type="primary" icon={<EditOutlined />} onClick={() => handleEdit(record)} style={{ marginRight: 8 }} />
-        <Popconfirm
-          title="Are you sure you want to delete this client?"
-          onConfirm={() => handleDelete(record.clientId)}
-          okText="Yes"
-          cancelText="No"
-        >
-          <Button type="danger" icon={<DeleteOutlined />} />
-        </Popconfirm>
-      </>
+          <Button type="primary" icon={<EditOutlined />} onClick={() => handleEdit(record)} style={{ marginRight: 8 }} />
+          <Popconfirm
+            title="Are you sure you want to delete this client?"
+            onConfirm={() => handleDelete(record.clientId)}
+            okText="Yes"
+            cancelText="No"
+          >
+            <Button type="danger" icon={<DeleteOutlined />} />
+          </Popconfirm>
+        </>
       ),
     },
   ];

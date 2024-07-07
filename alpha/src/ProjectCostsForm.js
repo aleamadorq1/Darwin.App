@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Form, Button, Select, InputNumber, TreeSelect, message, Typography, Divider, Row, Col, Tabs } from 'antd';
-import { PlusOutlined, MinusCircleOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import { PlusOutlined, MinusCircleOutlined, InfoCircleOutlined, SaveOutlined } from '@ant-design/icons';
 import axios from 'axios';
 
 const { Option } = Select;
@@ -240,7 +240,7 @@ const ProjectCostsForm = ({ form, projectId, setLoading }) => {
                         fieldKey={[fieldKey, 'laborId']}
                         rules={[{ required: true, message: 'Please select labor' }]}
                       >
-                        <Select placeholder="Select labor" style={{ width: '100%' }}>
+                        <Select placeholder="Select labor" style={{ width: '100%' }} showSearch optionFilterProp="children">
                           {laborOptions.map((labor) => (
                             <Option key={labor.laborId} value={labor.laborId}>
                               {labor.laborType}
@@ -379,7 +379,7 @@ const ProjectCostsForm = ({ form, projectId, setLoading }) => {
                         fieldKey={[fieldKey, 'moduleId']}
                         rules={[{ required: true, message: 'Please select module' }]}
                       >
-                        <Select placeholder="Select module" style={{ width: '100%' }}>
+                        <Select placeholder="Select module" style={{ width: '100%' }} showSearch optionFilterProp="children">
                           {moduleOptions.map((module) => (
                             <Option key={module.moduleId} value={module.moduleId}>
                               {module.moduleName}
@@ -445,7 +445,7 @@ const ProjectCostsForm = ({ form, projectId, setLoading }) => {
                         fieldKey={[fieldKey, 'bundleId']}
                         rules={[{ required: true, message: 'Please select bundle' }]}
                       >
-                        <Select placeholder="Select bundle" style={{ width: '100%' }}>
+                        <Select placeholder="Select bundle" style={{ width: '100%' }} showSearch optionFilterProp="children">
                           {bundleOptions.map((bundle) => (
                             <Option key={bundle.moduleCompositeId} value={bundle.moduleCompositeId}>
                               {bundle.compositeName}
@@ -523,7 +523,7 @@ const ProjectCostsForm = ({ form, projectId, setLoading }) => {
       <Divider />
 
       <div style={{ textAlign: 'right', marginTop: 16 }}>
-        <Button type="primary" htmlType="submit">
+        <Button type="primary" htmlType="submit" icon={<SaveOutlined />}>
           Save
         </Button>
       </div>

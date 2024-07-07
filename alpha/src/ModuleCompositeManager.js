@@ -1,37 +1,56 @@
-// src/ModuleCompositeManager.js
+// src/SupplierList.js
 import React, { useEffect, useState, useRef } from 'react';
-import { Table, Input, Button, Space, Popconfirm, message, Drawer, Form, Typography, Divider } from 'antd';
+import { Table, Button, Popconfirm, message, Typography, Divider, Input, Space } from 'antd';
+import { EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons';
 import axios from 'axios';
-import { SearchOutlined, EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
-import ModuleCompositeForm from './ModuleCompositeForm';
+import SupplierForm from './SupplierForm';
 
 const { Title, Text } = Typography;
 
-const ModuleCompositeManager = () => {
-  const [moduleComposites, setModuleComposites] = useState([]);
+const SupplierList = () => {
+  const [suppliers, setSuppliers] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [searchText, setSearchText] = useState('');
-  const [searchedColumn, setSearchedColumn] = useState('');
   const [drawerVisible, setDrawerVisible] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [selectedModuleComposite, setSelectedModuleComposite] = useState(null);
-  const [form] = Form.useForm();
+  const [selectedSupplier, setSelectedSupplier] = useState(null);
   const searchInputRef = useRef(null);
 
   useEffect(() => {
-    fetchModuleComposites();
+    fetchSuppliers();
   }, []);
 
-  const fetchModuleComposites = async () => {
+  const fetchSuppliers = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('https://localhost:7115/api/modulescomposite');
-      setModuleComposites(response.data);
+      const response = await axios.get('https://localhost:7115/api/suppliers');
+      setSuppliers(response.data);
     } catch (error) {
-      console.error('There was an error fetching the module composites!', error);
+      console.error("There was an error fetching the suppliers!", error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleEdit = (supplier) => {
+    setSelectedSupplier(supplier);
+    setDrawerVisible(true);
+  };
+
+  const handleDelete = async (supplierId) => {
+    setLoading(true);
+    try {
+      await axios.delete(`https://localhost:7115/api/suppliers/${supplierId}`);
+      message.success('Supplier deleted successfully');
+      fetchSuppliers(); // Refresh the list after deletion
+    } catch (error) {
+      console.error("There was an error deleting the supplier!", error);
+      message.error('Failed to delete supplier');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSave = () => {
+    fetchSuppliers(); // Refresh the list after save
   };
 
   const getColumnSearchProps = (dataIndex) => ({
@@ -41,7 +60,7 @@ const ModuleCompositeManager = () => {
           ref={searchInputRef}
           placeholder={`Search ${dataIndex}`}
           value={selectedKeys[0]}
-          onChange={e => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+          onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
           onPressEnter={() => handleSearch(selectedKeys, confirm, dataIndex)}
           style={{ marginBottom: 8, display: 'block' }}
         />
@@ -61,126 +80,94 @@ const ModuleCompositeManager = () => {
         </Space>
       </div>
     ),
-    filterIcon: filtered => <SearchOutlined style={{ color: filtered ? '#1890ff' : undefined }} />,
-    onFilter: (value, record) =>
-      record[dataIndex]
-        ? record[dataIndex].toString().toLowerCase().includes(value.toLowerCase())
-        : '',
-        onFilterDropdownOpenChange: visible => {
+    filterIcon: (filtered) => <SearchOutlined style={{ color: filtered ? '#1890ff' : undefined }} />,
+    onFilter: (value, record) => record[dataIndex].toString().toLowerCase().includes(value.toLowerCase()),
+    onFilterDropdownVisibleChange: (visible) => {
       if (visible) {
-        setTimeout(() => searchInputRef.current.select(), 100);
+        setTimeout(() => searchInputRef.current?.select(), 100);
       }
     },
   });
 
   const handleSearch = (selectedKeys, confirm, dataIndex) => {
     confirm();
-    setSearchText(selectedKeys[0]);
-    setSearchedColumn(dataIndex);
   };
 
   const handleReset = (clearFilters) => {
     clearFilters();
-    setSearchText('');
-  };
-
-  const handleDelete = async (moduleCompositeId) => {
-    try {
-      await axios.delete(`https://localhost:7115/api/modulescomposite/${moduleCompositeId}`);
-      message.success('Module Composite deleted successfully');
-      fetchModuleComposites(); // Refresh the module composites list
-    } catch (error) {
-      console.error('There was an error deleting the module composite!', error);
-      message.error('Failed to delete module composite');
-    }
-  };
-
-  const handleEdit = (moduleComposite) => {
-    setIsEditing(true);
-    setSelectedModuleComposite(moduleComposite);
-    form.setFieldsValue(moduleComposite);
-    setDrawerVisible(true);
-  };
-
-  const handleAdd = () => {
-    setIsEditing(false);
-    setSelectedModuleComposite(null);
-    form.resetFields();
-    setDrawerVisible(true);
-  };
-
-  const handleDrawerClose = () => {
-    setDrawerVisible(false);
+    fetchSuppliers(); // Reset to fetch all suppliers
   };
 
   const columns = [
     {
       title: 'Name',
-      dataIndex: 'compositeName',
-      key: 'compositeName',
-      ...getColumnSearchProps('compositeName'),
+      dataIndex: 'supplierName',
+      key: 'supplierName',
+      ...getColumnSearchProps('supplierName'),
+      style: { width: "20em" },
     },
     {
-      title: 'Description',
-      dataIndex: 'description',
-      key: 'description',
+      title: 'Contact Info',
+      dataIndex: 'contactInfo',
+      key: 'contactInfo',
+      responsive: ['md'], // Hide on small screens
+      ...getColumnSearchProps('contactInfo'),
+    },
+    {
+      title: 'Address',
+      dataIndex: 'address',
+      key: 'address',
+    },
+    {
+      title: 'Last Modified',
+      dataIndex: 'lastModified',
+      key: 'lastModified',
+      responsive: ['md'],
+      render: (text) => new Date(text).toLocaleString(), // Assume the date is already a valid ISO string or timestamp
     },
     {
       title: 'Actions',
       key: 'actions',
       render: (text, record) => (
-        <Space size="middle">
-          <Button type="link" icon={<EditOutlined />} onClick={() => handleEdit(record)} />
+        <>
+          <Button type="primary" icon={<EditOutlined />} onClick={() => handleEdit(record)} style={{ marginRight: 8 }} />
           <Popconfirm
-            title="Are you sure you want to delete this module composite?"
-            onConfirm={() => handleDelete(record.moduleCompositeId)}
+            title="Are you sure you want to delete this supplier?"
+            onConfirm={() => handleDelete(record.supplierId)}
             okText="Yes"
             cancelText="No"
           >
-            <Button type="link" icon={<DeleteOutlined />} />
+            <Button type="danger" icon={<DeleteOutlined />} />
           </Popconfirm>
-        </Space>
+        </>
       ),
     },
   ];
 
   return (
-    <div>
-      <Title level={2}>Module Composites Configuration</Title>
+    <>
+      <Title level={2}>Supplier Management</Title>
       <Text>
-        Use this page to manage the Module Composites. You can add, edit, and delete Module Composites.
+        Use this page to manage the Suppliers. You can add, edit, and delete suppliers.
       </Text>
       <Divider />
-      <Button
-        type="primary"
-        icon={<PlusOutlined />}
-        onClick={handleAdd}
-        style={{ marginBottom: 16 }}
-      >
-        Create Module Composite
+      <Button type="primary" onClick={() => handleEdit(null)} style={{ marginBottom: 16 }}>
+        Create Supplier
       </Button>
       <Table
-        dataSource={moduleComposites}
+        dataSource={suppliers}
         columns={columns}
-        rowKey="moduleCompositeId"
+        rowKey="supplierId"
         loading={loading}
       />
-      <Drawer
-        title={isEditing ? 'Edit Module Composite' : 'Add Module Composite'}
-        width={600}
-        onClose={handleDrawerClose}
-        open={drawerVisible}
-      >
-        <ModuleCompositeForm
-          form={form}
-          onCancel={handleDrawerClose}
-          fetchModuleComposites={fetchModuleComposites}
-          isEditing={isEditing}
-          initialValues={selectedModuleComposite}
-        />
-      </Drawer>
-    </div>
+      <SupplierForm
+        visible={drawerVisible}
+        onClose={() => setDrawerVisible(false)}
+        supplier={selectedSupplier}
+        onSave={handleSave}
+      />
+    </>
   );
 };
 
-export default ModuleCompositeManager;
+export default SupplierList;
