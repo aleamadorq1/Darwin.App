@@ -65,6 +65,7 @@ const MainLayout = ({ children }) => {
         { key: '7', label: <Link to="/modulecomposite">Module Composite</Link> },
         { key: '8', label: <Link to="/clients">Clients</Link> },
         { key: '9', label: <Link to="/suppliers">Suppliers</Link> },
+        { key: '10', label: <Link to="/distributioncenters">Distribution Centers</Link> },
       ],
     },
   ];
@@ -124,7 +125,7 @@ const MainLayout = ({ children }) => {
             collapsedWidth="0"
           >
             {userInfo}
-            <Menu mode="inline" theme="dark" defaultSelectedKeys={['1']} style={{ height: '100%', borderRight: 0 }} items={menuItems} />
+            <Menu mode="inline" theme="dark" defaultSelectedKeys={['1']} style={{ height: '80%', borderRight: 0 }} items={menuItems} />
           </Sider>
         )}
         {isMobile && (
@@ -140,7 +141,7 @@ const MainLayout = ({ children }) => {
             }}
           >
             {userInfo}
-            <Menu mode="inline" theme="dark" defaultSelectedKeys={['1']} style={{ height: '100%', borderRight: 0 }} items={menuItems} onClick={handleMenuClick} />
+            <Menu mode="inline" theme="dark" defaultSelectedKeys={['1']} style={{ height: '80%', borderRight: 0 }} items={menuItems} onClick={handleMenuClick} />
           </Drawer>
         )}
         <Layout style={{ padding: '0 24px 24px' }}>

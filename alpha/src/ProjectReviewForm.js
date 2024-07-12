@@ -13,6 +13,7 @@ const ProjectReviewForm = ({ form, onSave, setLoading }) => {
   const [data, setData] = useState({ modules: [], modulesComposite: [] });
   const [adjustmentType, setAdjustmentType] = useState('all');
   const [profitMargin, setProfitMargin] = useState(0);
+  const [distance, setDistance] = useState(0);
 
   const fetchProjectDetails = useCallback(async () => {
     setLoading(true);
@@ -27,19 +28,9 @@ const ProjectReviewForm = ({ form, onSave, setLoading }) => {
           formData[`material_${module.moduleId}_${material.projectMaterialId}_cifPrice_${index}`] = material.cifPrice;
         });
         module.moduleLabors.forEach((labor, index) => {
-          formData[`labor_${module.moduleId}_${labor.moduleLaborId}_hourlyRate_${index}`] = labor.hourlyRate;
-        });
-      });
-
-      projectData.modulesComposite.forEach((composite) => {
-        composite.compositeDetails.forEach((detail) => {
-          detail.module.moduleMaterials.forEach((material, index) => {
-            formData[`material_${detail.moduleId}_${material.projectMaterialId}_unitPrice_${index}`] = material.unitPrice;
-            formData[`material_${detail.moduleId}_${material.projectMaterialId}_cifPrice_${index}`] = material.cifPrice;
-          });
-          detail.module.moduleLabors.forEach((labor, index) => {
-            formData[`labor_${detail.moduleId}_${labor.moduleLaborId}_hourlyRate_${index}`] = labor.hourlyRate;
-          });
+          formData[`labor_${module.moduleId}_${labor.projectLaborId}_hourlyRate_${index}`] = labor.hourlyRate;
+          formData[`labor_${module.moduleId}_${labor.projectLaborId}_allowanceAmount_${index}`] = labor.allowanceAmount;
+          formData[`labor_${module.moduleId}_${labor.projectLaborId}_allowanceQuantity_${index}`] = labor.allowanceQuantity;
         });
       });
 
@@ -48,6 +39,7 @@ const ProjectReviewForm = ({ form, onSave, setLoading }) => {
       form.setFieldsValue(formData);
       setData(projectData);
       setProfitMargin(projectData.profitMargin); // Set the initial profit margin
+      setDistance(projectData.distance); // Set the distance
     } catch (error) {
       console.error('Error fetching project details:', error);
       message.error('Failed to load project details');
@@ -72,7 +64,9 @@ const ProjectReviewForm = ({ form, onSave, setLoading }) => {
         })),
         moduleLabors: (module.moduleLabors || []).map((labor, index) => ({
           ...labor,
-          hourlyRate: values[`labor_${module.moduleId}_${labor.moduleLaborId}_hourlyRate_${index}`] ?? labor.hourlyRate,
+          hourlyRate: values[`labor_${module.moduleId}_${labor.projectLaborId}_hourlyRate_${index}`] ?? labor.hourlyRate,
+          allowanceAmount: values[`labor_${module.moduleId}_${labor.projectLaborId}_allowanceAmount_${index}`] ?? labor.allowanceAmount,
+          allowanceQuantity: values[`labor_${module.moduleId}_${labor.projectLaborId}_allowanceQuantity_${index}`] ?? labor.allowanceQuantity,
         }))
       }));
 
@@ -89,7 +83,9 @@ const ProjectReviewForm = ({ form, onSave, setLoading }) => {
             })),
             moduleLabors: (detail.module.moduleLabors || []).map((labor, index) => ({
               ...labor,
-              hourlyRate: values[`labor_${detail.moduleId}_${labor.moduleLaborId}_hourlyRate_${index}`] ?? labor.hourlyRate,
+              hourlyRate: values[`labor_${detail.moduleId}_${labor.projectLaborId}_hourlyRate_${index}`] ?? labor.hourlyRate,
+              allowanceAmount: values[`labor_${detail.moduleId}_${labor.projectLaborId}_allowanceAmount_${index}`] ?? labor.allowanceAmount,
+              allowanceQuantity: values[`labor_${detail.moduleId}_${labor.projectLaborId}_allowanceQuantity_${index}`] ?? labor.allowanceQuantity,
             }))
           }
         }))
@@ -129,11 +125,13 @@ const ProjectReviewForm = ({ form, onSave, setLoading }) => {
         ? module.moduleLabors.map((labor) => ({
           ...labor,
           hourlyRate: adjustValue(labor.hourlyRate),
+          allowanceAmount: adjustValue(labor.allowanceAmount),
+          allowanceQuantity: labor.allowanceQuantity,
         }))
         : module.moduleLabors;
 
       const updatedTotal = adjustedMaterials.reduce((sum, material) => sum + (material.unitPrice * material.quantity), 0)
-        + adjustedLabors.reduce((sum, labor) => sum + (labor.hourlyRate * labor.quantity), 0);
+        + adjustedLabors.reduce((sum, labor) => sum + ((labor.hourlyRate * labor.quantity) + (labor.allowanceAmount * labor.allowanceQuantity)), 0);
 
       return {
         ...module,
@@ -157,11 +155,13 @@ const ProjectReviewForm = ({ form, onSave, setLoading }) => {
           ? detail.module.moduleLabors.map((labor) => ({
             ...labor,
             hourlyRate: adjustValue(labor.hourlyRate),
+            allowanceAmount: adjustValue(labor.allowanceAmount),
+            allowanceQuantity: labor.allowanceQuantity,
           }))
           : detail.module.moduleLabors;
 
         const updatedTotal = adjustedMaterials.reduce((sum, material) => sum + (material.unitPrice * material.quantity), 0)
-          + adjustedLabors.reduce((sum, labor) => sum + (labor.hourlyRate * labor.quantity), 0);
+          + adjustedLabors.reduce((sum, labor) => sum + ((labor.hourlyRate * labor.quantity) + (labor.allowanceAmount * labor.allowanceQuantity)), 0);
 
         return {
           ...detail,
@@ -198,7 +198,9 @@ const ProjectReviewForm = ({ form, onSave, setLoading }) => {
         formData[`material_${module.moduleId}_${material.projectMaterialId}_cifPrice_${index}`] = material.cifPrice;
       });
       module.moduleLabors.forEach((labor, index) => {
-        formData[`labor_${module.moduleId}_${labor.moduleLaborId}_hourlyRate_${index}`] = labor.hourlyRate;
+        formData[`labor_${module.moduleId}_${labor.projectLaborId}_hourlyRate_${index}`] = labor.hourlyRate;
+        formData[`labor_${module.moduleId}_${labor.projectLaborId}_allowanceAmount_${index}`] = labor.allowanceAmount;
+        formData[`labor_${module.moduleId}_${labor.projectLaborId}_allowanceQuantity_${index}`] = labor.allowanceQuantity;
       });
     });
     adjustedData.modulesComposite.forEach((composite) => {
@@ -208,7 +210,9 @@ const ProjectReviewForm = ({ form, onSave, setLoading }) => {
           formData[`material_${detail.moduleId}_${material.projectMaterialId}_cifPrice_${index}`] = material.cifPrice;
         });
         detail.module.moduleLabors.forEach((labor, index) => {
-          formData[`labor_${detail.moduleId}_${labor.moduleLaborId}_hourlyRate_${index}`] = labor.hourlyRate;
+          formData[`labor_${detail.moduleId}_${labor.projectLaborId}_hourlyRate_${index}`] = labor.hourlyRate;
+          formData[`labor_${detail.moduleId}_${labor.projectLaborId}_allowanceAmount_${index}`] = labor.allowanceAmount;
+          formData[`labor_${detail.moduleId}_${labor.projectLaborId}_allowanceQuantity_${index}`] = labor.allowanceQuantity;
         });
       });
     });
@@ -221,10 +225,14 @@ const ProjectReviewForm = ({ form, onSave, setLoading }) => {
 
   const calculateTotal = (items, priceKey, quantityKey) => 
     items.reduce((sum, item) => sum + (item[priceKey] * item[quantityKey]), 0);
+
+  const calculateLaborAllowanceTotal = (items) => 
+    items.reduce((sum, item) => sum + (item.allowanceAmount * item.allowanceQuantity), 0);
   
   const systemCosts = data.modules.reduce((acc, module) => {
     const moduleTotal = calculateTotal(module.moduleMaterials, 'unitPrice', 'quantity') +
-                        calculateTotal(module.moduleLabors, 'hourlyRate', 'quantity');
+                        calculateTotal(module.moduleLabors, 'hourlyRate', 'quantity') +
+                        calculateLaborAllowanceTotal(module.moduleLabors);
     if (!acc[module.systemName]) {
       acc[module.systemName] = { systemName: module.systemName, systemTotal: 0 };
     }
@@ -242,18 +250,20 @@ const ProjectReviewForm = ({ form, onSave, setLoading }) => {
   const calculateCompositeTotal = (composite) => {
     return composite.compositeDetails.reduce((total, detail) => {
       const moduleTotal = calculateTotal(detail.module.moduleMaterials, 'unitPrice', 'quantity') +
-                          calculateTotal(detail.module.moduleLabors, 'hourlyRate', 'quantity');
+                          calculateTotal(detail.module.moduleLabors, 'hourlyRate', 'quantity') +
+                          calculateLaborAllowanceTotal(detail.module.moduleLabors);
       return total + (moduleTotal * detail.quantity);
     }, 0);
   };
 
   const totalMaterials = calculateTotal(data.modules.flatMap(module => module.moduleMaterials), 'unitPrice', 'quantity');
   const totalLabor = calculateTotal(data.modules.flatMap(module => module.moduleLabors), 'hourlyRate', 'quantity');
+  const totalLaborAllowance = calculateLaborAllowanceTotal(data.modules.flatMap(module => module.moduleLabors));
   const totalCompositeMaterials = calculateTotal(data.modulesComposite.flatMap(composite => composite.compositeDetails.flatMap(detail => detail.module.moduleMaterials)), 'unitPrice', 'quantity');
   const totalCompositeLabor = calculateTotal(data.modulesComposite.flatMap(composite => composite.compositeDetails.flatMap(detail => detail.module.moduleLabors)), 'hourlyRate', 'quantity');
-  const totalProfit = (totalMaterials + totalLabor + totalCompositeMaterials + totalCompositeLabor) * profitMargin / 100;
-  const grandTotal = totalMaterials + totalLabor + totalCompositeMaterials + totalCompositeLabor + totalProfit;
-
+  const totalCompositeLaborAllowance = calculateLaborAllowanceTotal(data.modulesComposite.flatMap(composite => composite.compositeDetails.flatMap(detail => detail.module.moduleLabors)));
+  const totalProfit = (totalMaterials + totalLabor + totalCompositeMaterials + totalCompositeLabor + totalLaborAllowance + totalCompositeLaborAllowance) * profitMargin / 100;
+  const grandTotal = totalMaterials + totalLabor + totalCompositeMaterials + totalCompositeLabor + totalLaborAllowance + totalCompositeLaborAllowance + totalProfit;
 
   return (
     <>
@@ -262,10 +272,10 @@ const ProjectReviewForm = ({ form, onSave, setLoading }) => {
         Here you review your project and fine-tune the costs. Please fill in the details below.
       </Paragraph>
       <Divider />
-        <Row gutter={16} justify="center">
+      <Row gutter={16} justify="center">
         {systemCostArray.map(system => (
           <Col key={system.systemName} span={6} style={{ textAlign: 'center' }}>
-            <Progress type="circle" percent={parseFloat(system.percentage)} size={80} />
+            <Progress type="circle" percent={parseFloat(system.percentage)} size={80} strokeColor={'#88b04d'}/>
             <div style={{ marginTop: 8 }}>{system.systemName} ({system.percentage}%)</div>
           </Col>
         ))}
@@ -294,12 +304,13 @@ const ProjectReviewForm = ({ form, onSave, setLoading }) => {
           {data.modules.map((module) => {
             const totalMaterialCost = calculateTotal(module.moduleMaterials, 'unitPrice', 'quantity');
             const totalLaborCost = calculateTotal(module.moduleLabors, 'hourlyRate', 'quantity');
+            const totalAllowanceCost = calculateLaborAllowanceTotal(module.moduleLabors);
             return (
               <Panel
                 header={
                   <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
                     <span>{module.moduleName}</span>
-                    <span>Qty: {module.quantity} | Total: {((totalMaterialCost + totalLaborCost)*module.quantity).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</span>
+                    <span>Qty: {module.quantity} | Total: {((totalMaterialCost + totalLaborCost + totalAllowanceCost) * module.quantity).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</span>
                   </div>
                 }
                 key={module.moduleId}
@@ -314,8 +325,8 @@ const ProjectReviewForm = ({ form, onSave, setLoading }) => {
                       key={`materials_${module.moduleId}`}>
                       {module.moduleMaterials.map((material, index) => (
                         <div key={`material_${module.moduleId}_${material.projectMaterialId}_${index}`} style={{ marginBottom: '16px' }}>
-                          <Space style={{ width: '100%', justifyContent: 'space-between' }}>
-                            <span>{material.materialName}</span>
+                          <Space style={{ width: '100%', justifyContent: 'space-between', paddingBottom: 8 }}>
+                            <span><b>{material.materialName}</b></span>
                             <span>Qty: {material.quantity}</span>
                           </Space>
                           <Form.Item
@@ -350,16 +361,16 @@ const ProjectReviewForm = ({ form, onSave, setLoading }) => {
                     <Panel header ={
                       <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
                       <span>Labor</span>
-                      <span>Total: {(totalLaborCost).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</span>
+                      <span>Total: {(totalLaborCost + totalAllowanceCost).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</span>
                     </div>}>
                       {module.moduleLabors.map((labor, index) => (
-                        <div key={`labor_${module.moduleId}_${labor.moduleLaborId}_${index}`} style={{ marginBottom: '16px' }}>
-                          <Space style={{ width: '100%', justifyContent: 'space-between' }}>
-                            <span>{labor.laborType}</span>
+                        <div key={`labor_${module.moduleId}_${labor.projectLaborId}_${index}`} style={{ marginBottom: '16px' }}>
+                          <Space style={{ width: '100%', justifyContent: 'space-between', paddingBottom: 8 }}>
+                            <span><b>{labor.laborType}</b></span>
                             <span>Qty: {labor.quantity}</span>
                           </Space>
                           <Form.Item
-                            name={`labor_${module.moduleId}_${labor.moduleLaborId}_hourlyRate_${index}`}
+                            name={`labor_${module.moduleId}_${labor.projectLaborId}_hourlyRate_${index}`}
                             rules={[{ required: true, message: 'Please enter hourly rate' }]}
                             style={{ margin: 0 }}
                             label="Hourly Rate"
@@ -369,6 +380,32 @@ const ProjectReviewForm = ({ form, onSave, setLoading }) => {
                               style={{ width: '100%' }}
                               formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
                               parser={value => value.replace(/\$\s?|(,*)/g, '')}
+                            />
+                          </Form.Item>
+                          <Form.Item
+                            name={`labor_${module.moduleId}_${labor.projectLaborId}_allowanceAmount_${index}`}
+                            rules={[{ required: true, message: 'Please enter allowance amount' }]}
+                            style={{ margin: 0 }}
+                            label="Daily Allowance"
+                          >
+                            <InputNumber
+                              min={0}
+                              style={{ width: '100%' }}
+                              formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                              parser={value => value.replace(/\$\s?|(,*)/g, '')}
+                            />
+                          </Form.Item>
+                          <Form.Item
+                            name={`labor_${module.moduleId}_${labor.projectLaborId}_allowanceQuantity_${index}`}
+                            rules={[{ required: true, message: 'Please enter allowance quantity' }]}
+                            style={{ margin: 0 }}
+                            label="Days"
+                          >
+                            <InputNumber
+                              min={0}
+                              style={{ width: '100%' }}
+                              formatter={value => value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                              parser={value => value.replace(/(,*)/g, '')}
                             />
                           </Form.Item>
                         </div>
@@ -393,12 +430,13 @@ const ProjectReviewForm = ({ form, onSave, setLoading }) => {
                 {composite.compositeDetails.map((detail) => {
                   const totalMaterialCost = calculateTotal(detail.module.moduleMaterials, 'unitPrice', 'quantity');
                   const totalLaborCost = calculateTotal(detail.module.moduleLabors, 'hourlyRate', 'quantity');
+                  const totalAllowanceCost = calculateLaborAllowanceTotal(detail.module.moduleLabors);
                   return (
                     <Panel
                       header={
                         <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
                           <span>{detail.module.moduleName}</span>
-                          <span>Qty: {detail.quantity} | Total: {((totalMaterialCost + totalLaborCost) * detail.quantity).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</span>
+                          <span>Qty: {detail.quantity} | Total: {((totalMaterialCost + totalLaborCost + totalAllowanceCost) * detail.quantity).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</span>
                         </div>
                       }
                       key={detail.moduleId}
@@ -413,8 +451,8 @@ const ProjectReviewForm = ({ form, onSave, setLoading }) => {
                               </div>}>
                             {detail.module.moduleMaterials.map((material, index) => (
                               <div key={`material_${detail.moduleId}_${material.projectMaterialId}_${index}`} style={{ marginBottom: '16px' }}>
-                                <Space style={{ width: '100%', justifyContent: 'space-between' }}>
-                                  <span>{material.materialName}</span>
+                                <Space style={{ width: '100%', justifyContent: 'space-between', paddingBottom: 8 }}>
+                                  <span><b>{material.materialName}</b></span>
                                   <span>Qty: {material.quantity}</span>
                                 </Space>
                                 <Form.Item
@@ -447,18 +485,18 @@ const ProjectReviewForm = ({ form, onSave, setLoading }) => {
                             ))}
                           </Panel>
                           <Panel header ={
-                              <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%'}}>
                                 <span>Labor</span>
-                                <span>Total: {totalLaborCost.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</span>
+                                <span>Total: {(totalLaborCost + totalAllowanceCost).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</span>
                               </div>}>
                             {detail.module.moduleLabors.map((labor, index) => (
-                              <div key={`labor_${detail.moduleId}_${labor.moduleLaborId}_${index}`} style={{ marginBottom: '16px' }}>
-                                <Space style={{ width: '100%', justifyContent: 'space-between' }}>
-                                  <span>{labor.laborType}</span>
+                              <div key={`labor_${detail.moduleId}_${labor.projectLaborId}_${index}`} style={{ marginBottom: '16px' }}>
+                                <Space style={{ width: '100%', justifyContent: 'space-between', paddingBottom: 8 }}>
+                                  <span><b>{labor.laborType}</b></span>
                                   <span>Qty: {labor.quantity}</span>
                                 </Space>
                                 <Form.Item
-                                  name={`labor_${detail.moduleId}_${labor.moduleLaborId}_hourlyRate_${index}`}
+                                  name={`labor_${detail.moduleId}_${labor.projectLaborId}_hourlyRate_${index}`}
                                   rules={[{ required: true, message: 'Please enter hourly rate' }]}
                                   style={{ margin: 0 }}
                                   label="Hourly Rate"
@@ -468,6 +506,32 @@ const ProjectReviewForm = ({ form, onSave, setLoading }) => {
                                     style={{ width: '100%' }}
                                     formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
                                     parser={value => value.replace(/\$\s?|(,*)/g, '')}
+                                  />
+                                </Form.Item>
+                                <Form.Item
+                                  name={`labor_${detail.moduleId}_${labor.projectLaborId}_allowanceAmount_${index}`}
+                                  rules={[{ required: true, message: 'Please enter allowance amount' }]}
+                                  style={{ margin: 0 }}
+                                  label="Daily Allowance"
+                                >
+                                  <InputNumber
+                                    min={0}
+                                    style={{ width: '100%' }}
+                                    formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                                    parser={value => value.replace(/\$\s?|(,*)/g, '')}
+                                  />
+                                </Form.Item>
+                                <Form.Item
+                                  name={`labor_${detail.moduleId}_${labor.projectLaborId}_allowanceQuantity_${index}`}
+                                  rules={[{ required: true, message: 'Please enter allowance quantity' }]}
+                                  style={{ margin: 0 }}
+                                  label="Allowance Quantity"
+                                >
+                                  <InputNumber
+                                    min={0}
+                                    style={{ width: '100%' }}
+                                    formatter={value => value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                                    parser={value => value.replace(/(,*)/g, '')}
                                   />
                                 </Form.Item>
                               </div>
@@ -483,8 +547,8 @@ const ProjectReviewForm = ({ form, onSave, setLoading }) => {
           ))}
         </Collapse>
         <Divider/>
-        <Row gutter={16} style={{ marginTop: 16 }}>
-        <Col xs={24} sm={9} style={{padding:8}}>
+        <Row gutter={16} style={{ marginTop: 8 }}>
+        <Col xs={24} sm={12} style={{padding:8}}>
           <Card>
             <Statistic
               title="Total Materials"
@@ -493,9 +557,10 @@ const ProjectReviewForm = ({ form, onSave, setLoading }) => {
               valueStyle={{ color: '#3f8600' }}
               prefix="$"
             />
+            <div style={{ display: 'flex', flexDirection: 'column', marginLeft: 2, padding:0, fontSize:10 }}>Includes: ${(totalLaborAllowance + totalCompositeLaborAllowance).toFixed(2)} of Taxes </div>
           </Card>
         </Col>
-        <Col xs={24} sm={9} style={{padding:8}}>
+        <Col xs={24} sm={12} style={{padding:8}}>
           <Card >
             <Statistic
               title="Total Labor"
@@ -506,13 +571,27 @@ const ProjectReviewForm = ({ form, onSave, setLoading }) => {
               prefix="$"
               
             />
+            <div style={{ display: 'flex', flexDirection: 'column', marginLeft: 2, padding:0, fontSize:10 }}>Includes: ${(totalLaborAllowance + totalCompositeLaborAllowance).toFixed(2)} of Allowances </div>
           </Card>
         </Col>
-        <Col xs={24} sm={6} style={{padding:8}}>
+      </Row>
+      <Row gutter={8} style={{ marginTop: 8 }}>
+        <Col xs={24} sm={12} style={{padding:8}}>
+          <Card>
+            <Statistic
+              title="Driving Distance"
+              value={distance || 'N/A'}
+              precision={2}
+              valueStyle={{ color: '#000' }}
+              suffix=" km"
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} style={{padding:8}}>
           <Card>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Statistic
-                title="Profit"
+                title="Profit %"
                 value={profitMargin}
                 precision={0}
                 suffix="%"
@@ -543,7 +622,7 @@ const ProjectReviewForm = ({ form, onSave, setLoading }) => {
           </Card>
         </Col>
       </Row>
-        <Row gutter={8}>
+      <Row gutter={8} style={{ marginTop: 8 }}>
         <Col xs={24} sm={12} style={{padding:8}}>
           <Card>
             <Statistic
@@ -551,7 +630,7 @@ const ProjectReviewForm = ({ form, onSave, setLoading }) => {
               value={totalProfit}
               precision={2}
               valueStyle={{ color: '#3f8600' }}
-              prefix="$"
+              suffix="$"
             />
           </Card>
         </Col>

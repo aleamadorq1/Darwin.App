@@ -37,6 +37,10 @@
   }
 }
 
+.pac-container {
+  z-index: 10000 !important; /* Ensure the suggestions list is above the Drawer */
+}
+
 /* src/App.css */
 .App {
   text-align: center;

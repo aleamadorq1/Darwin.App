@@ -16,6 +16,7 @@ const ProjectForm = ({ form, onSave, setLoading }) => {
   const [locationModalVisible, setLocationModalVisible] = useState(false);
   const [location, setLocation] = useState(null);
   const [clients, setClients] = useState([]);
+  const [distributionCenters, setDistributionCenters] = useState([]);
   const [isEditMode, setIsEditMode] = useState(!!projectId);
 
   const baseURL = 'https://localhost:7115/api'; // Base URL for the API endpoints
@@ -28,6 +29,19 @@ const ProjectForm = ({ form, onSave, setLoading }) => {
     } catch (error) {
       console.error('Error fetching clients:', error);
       message.error('Failed to load clients');
+    } finally {
+      setLoading(false);
+    }
+  }, [setLoading]);
+
+  const fetchDistributionCenters = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get(`${baseURL}/distributionCenters`);
+      setDistributionCenters(response.data);
+    } catch (error) {
+      console.error('Error fetching distribution centers:', error);
+      message.error('Failed to load distribution centers');
     } finally {
       setLoading(false);
     }
@@ -50,6 +64,7 @@ const ProjectForm = ({ form, onSave, setLoading }) => {
         start_date: moment(project.startDate),
         end_date: moment(project.endDate),
         client_id: project.clientId,
+        distribution_center_id: project.distributionCenterId,
         total_area: project.totalArea,
         profit_margin: project.profitMargin,
       });
@@ -72,10 +87,11 @@ const ProjectForm = ({ form, onSave, setLoading }) => {
 
   useEffect(() => {
     fetchClients();
+    fetchDistributionCenters();
     if (projectId) {
       fetchProjectDetails(projectId);
     }
-  }, [projectId, fetchProjectDetails, fetchClients]);
+  }, [projectId, fetchProjectDetails, fetchClients, fetchDistributionCenters]);
 
   const handleSave = async (values) => {
     setLoading(true);
@@ -86,6 +102,7 @@ const ProjectForm = ({ form, onSave, setLoading }) => {
       startDate: values.start_date.format('YYYY-MM-DDTHH:mm:ss'),
       endDate: values.end_date.format('YYYY-MM-DDTHH:mm:ss'),
       clientId: values.client_id,
+      distributionCenterId: values.distribution_center_id,
       totalArea: values.total_area,
       profitMargin: values.profit_margin,
       location: location ? location.name : '',
@@ -171,17 +188,36 @@ const ProjectForm = ({ form, onSave, setLoading }) => {
           </Col>
         </Row>
 
-        <Form.Item
-          name="client_id"
-          label="Client"
-          rules={[{ required: true, message: 'Please select a client' }]}
-        >
-          <Select placeholder="Select a client">
-            {clients.map(client => (
-              <Option key={client.clientId} value={client.clientId}>{client.clientName}</Option>
-            ))}
-          </Select>
-        </Form.Item>
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              name="client_id"
+              label="Client"
+              rules={[{ required: true, message: 'Please select a client' }]}
+            >
+              <Select placeholder="Select a client">
+                {clients.map(client => (
+                  <Option key={client.clientId} value={client.clientId}>{client.clientName}</Option>
+                ))}
+              </Select>
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item
+              name="distribution_center_id"
+              label="Distribution Center"
+              rules={[{ required: true, message: 'Please select a distribution center' }]}
+            >
+              <Select placeholder="Select a distribution center">
+                {distributionCenters.map(center => (
+                  <Option key={center.distributionCenterId} value={center.distributionCenterId}>
+                    {center.name}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+          </Col>
+        </Row>
 
         <Row gutter={16}>
           <Col span={12}>
@@ -224,9 +260,9 @@ const ProjectForm = ({ form, onSave, setLoading }) => {
         </Form.Item>
 
         <Form.Item>
-          <div style={{ textAlign: 'right', marginTop: 16}}>
+          <div style={{ textAlign: 'right', marginTop: 16 }}>
             <Button type="primary" htmlType="submit" icon={<SaveOutlined />}>
-            Save
+              Save
             </Button>
           </div>
         </Form.Item>

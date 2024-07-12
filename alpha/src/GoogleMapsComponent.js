@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { GoogleMap, LoadScript, Marker, Autocomplete } from '@react-google-maps/api';
+import { GoogleMap, Marker, Autocomplete } from '@react-google-maps/api';
 import { Modal, Input } from 'antd';
+import { useGoogleMaps } from './GoogleMapsProvider';
+import './App.css'; // Make sure to import your CSS file
 
 const mapContainerStyle = {
   width: '100%',
@@ -12,37 +14,39 @@ const center = {
   lng: -38.523,
 };
 
-const libraries = ['places'];
-
-const GoogleMapsComponent = ({ visible, onClose, onLocationSelect }) => {
+const GoogleMapsComponent = ({ visible, onClose, onLocationSelect, initialCenter = center }) => {
+  const googleMapsLoaded = useGoogleMaps();
   const [marker, setMarker] = useState(null);
   const [placeDetails, setPlaceDetails] = useState(null);
   const [autocomplete, setAutocomplete] = useState(null);
   const mapRef = useRef(null);
 
   const handleMapClick = (event) => {
-    setMarker({
+    const newMarker = {
       lat: event.latLng.lat(),
       lng: event.latLng.lng(),
-    });
+    };
+    setMarker(newMarker);
     setPlaceDetails(null); // Clear place details if user clicks on the map
   };
 
   const handlePlaceChanged = () => {
-    const place = autocomplete.getPlace();
-    if (place.geometry) {
-      const newMarker = {
-        lat: place.geometry.location.lat(),
-        lng: place.geometry.location.lng(),
-      };
-      setMarker(newMarker);
-      mapRef.current.panTo(newMarker);
-      setPlaceDetails({
-        name: place.name,
-        address: place.formatted_address,
-        lat: newMarker.lat,
-        lng: newMarker.lng,
-      });
+    if (autocomplete) {
+      const place = autocomplete.getPlace();
+      if (place.geometry) {
+        const newMarker = {
+          lat: place.geometry.location.lat(),
+          lng: place.geometry.location.lng(),
+        };
+        setMarker(newMarker);
+        mapRef.current.panTo(newMarker);
+        setPlaceDetails({
+          name: place.name,
+          address: place.formatted_address,
+          lat: newMarker.lat,
+          lng: newMarker.lng,
+        });
+      }
     }
   };
 
@@ -52,44 +56,45 @@ const GoogleMapsComponent = ({ visible, onClose, onLocationSelect }) => {
   };
 
   useEffect(() => {
-    if (window.google && window.google.maps && window.google.maps.marker) {
-      const { AdvancedMarkerElement } = window.google.maps.marker;
-      if (marker) {
-        new AdvancedMarkerElement({
-          position: { lat: marker.lat, lng: marker.lng },
-          map: mapRef.current,
-        });
-      }
+    if (autocomplete) {
+      const autocompleteListener = autocomplete.addListener('place_changed', handlePlaceChanged);
+      return () => {
+        if (autocompleteListener) {
+          autocompleteListener.remove();
+        }
+      };
     }
-  }, [marker]);
+  }, [autocomplete]);
+
+  if (!googleMapsLoaded) {
+    return null;
+  }
 
   return (
     <Modal
       open={visible}
-      title="Select Project Location"
+      title="Select Location"
       onCancel={onClose}
       onOk={handleSave}
       width={800}
     >
-      <LoadScript googleMapsApiKey="AIzaSyD7Ub59HnZxM5bQ-fZl58pLAy1-7a8_WL4" libraries={libraries} loadingElement={<div style={{ height: `100%` }} />}>
-        <Autocomplete
-          onLoad={(autocompleteInstance) => setAutocomplete(autocompleteInstance)}
-          onPlaceChanged={handlePlaceChanged}
-        >
-          <Input placeholder="Search for a place" style={{ marginBottom: '10px' }} />
-        </Autocomplete>
-        <GoogleMap
-          mapContainerStyle={mapContainerStyle}
-          center={center}
-          zoom={10}
-          onClick={handleMapClick}
-          onLoad={(mapInstance) => (mapRef.current = mapInstance)}
-        >
-          {marker && (
-            <Marker position={{ lat: marker.lat, lng: marker.lng }} />
-          )}
-        </GoogleMap>
-      </LoadScript>
+      <Autocomplete
+        onLoad={(autocompleteInstance) => setAutocomplete(autocompleteInstance)}
+        onPlaceChanged={handlePlaceChanged}
+      >
+        <Input placeholder="Search for a place" style={{ marginBottom: '10px' }} />
+      </Autocomplete>
+      <GoogleMap
+        mapContainerStyle={mapContainerStyle}
+        center={initialCenter}
+        zoom={10}
+        onClick={handleMapClick}
+        onLoad={(mapInstance) => (mapRef.current = mapInstance)}
+      >
+        {marker && (
+          <Marker position={{ lat: marker.lat, lng: marker.lng }} />
+        )}
+      </GoogleMap>
       {placeDetails && (
         <div style={{ marginTop: '10px' }}>
           <p><strong>Name:</strong> {placeDetails.name}</p>

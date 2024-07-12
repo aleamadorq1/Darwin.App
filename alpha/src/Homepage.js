@@ -53,25 +53,25 @@ const HomePage = () => {
   const projectCards = [
     {
       title: 'New Project',
-      icon: <FileAddTwoTone style={{ fontSize: '48px', margin: '24px 0' }} />,
+      icon: <FileAddTwoTone twoToneColor='#5b6d92' style={{ fontSize: '48px', margin: '24px 0'}} />,
       description: 'Create a new project',
       onClick: () => navigate('/projectedit'), // Navigate to project creation
     },
     {
       title: 'Word Template',
-      icon: <FileWordTwoTone style={{ fontSize: '48px', margin: '24px 0' }} />,
+      icon: <FileWordTwoTone twoToneColor='#5b6d92' style={{ fontSize: '48px', margin: '24px 0' }} />,
       description: 'Use a Word template',
       responsive: ['md'],
     },
     {
       title: 'Excel Template',
-      icon: <FileExcelTwoTone style={{ fontSize: '48px', margin: '24px 0' }} />,
+      icon: <FileExcelTwoTone twoToneColor='#5b6d92' style={{ fontSize: '48px', margin: '24px 0' }} />,
       description: 'Use an Excel template',
       responsive: ['md'],
     },
     {
       title: 'PowerPoint Template',
-      icon: <FilePptTwoTone style={{ fontSize: '48px', margin: '24px 0' }} />,
+      icon: <FilePptTwoTone twoToneColor='#5b6d92' style={{ fontSize: '48px', margin: '24px 0' }} />,
       description: 'Use a PowerPoint template',
       responsive: ['md'],
     },
@@ -124,7 +124,7 @@ const HomePage = () => {
             return (
               <List.Item>
                 <List.Item.Meta
-                  avatar={<FileTextTwoTone style={{ fontSize: '24px' }} />}
+                  avatar={<FileTextTwoTone twoToneColor='#5b6d92' style={{ fontSize: '24px' }} />}
                   title={<Link to={`/projectedit/${item.projectId}`}>{item.projectName}</Link>}
                   description={<Text type="secondary" style={{ fontSize: '12px' }}>Client: {item.clientName}</Text>}
                   style={{ marginRight: 10, flex: 1 }}

@@ -193,6 +193,7 @@ const MaterialManager = () => {
       title: 'Unit Price',
       dataIndex: 'unitPrice',
       key: 'unitPrice',
+      responsive: ['md'],
       render: (text) => `$${text.toFixed(2)}`,
     },
     {
