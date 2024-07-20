@@ -2,6 +2,8 @@
 import React, { useEffect } from 'react';
 import { Form, Input, Button } from 'antd';
 
+const { TextArea } = Input;
+
 const LaborForm = ({ form, onSubmit, onCancel, isEditing }) => {
   useEffect(() => {
     if (!isEditing) {
@@ -26,11 +28,18 @@ const LaborForm = ({ form, onSubmit, onCancel, isEditing }) => {
         <Input type="number" placeholder="Please enter the hourly rate" />
       </Form.Item>
       <Form.Item
+        name="minAllowance"
+        label="Minimum Allowance"
+        rules={[{ required: true, message: 'Please enter the minimum allowance' }]}
+      >
+        <Input type="number" placeholder="Please enter the minimum allowance" />
+      </Form.Item>
+      <Form.Item
         name="description"
         label="Description"
         rules={[{ required: true, message: 'Please enter the description' }]}
       >
-        <Input placeholder="Please enter the description" />
+        <TextArea placeholder="Please enter the description" rows={4} />
       </Form.Item>
       <div style={{ textAlign: 'right' }}>
         <Button onClick={onCancel} style={{ marginRight: 8 }}>

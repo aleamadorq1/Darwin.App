@@ -15,6 +15,8 @@ const MaterialManager = () => {
   const [selectedMaterial, setSelectedMaterial] = useState(null);
   const [categories, setCategories] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
+  const [taxRates, setTaxRates] = useState([]);
+  const [handlingCosts, setHandlingCosts] = useState([]);
   const [form] = Form.useForm();
   const searchInputRef = useRef(null);
 
@@ -22,6 +24,8 @@ const MaterialManager = () => {
     fetchMaterials();
     fetchCategories();
     fetchSuppliers();
+    fetchTaxRates();
+    fetchHandlingCosts();
   }, []);
 
   const fetchMaterials = async () => {
@@ -54,6 +58,26 @@ const MaterialManager = () => {
       console.error('There was an error fetching the suppliers!', error);
     }
   };
+
+    // Fetch tax rates and handling costs
+    const fetchTaxRates = async () => {
+      try {
+        const response = await axios.get('https://localhost:7115/api/taxrate');
+        setTaxRates(response.data);
+      } catch (error) {
+        console.error('Failed to fetch tax rates', error);
+      }
+    };
+
+    const fetchHandlingCosts = async () => {
+      try {
+        const response = await axios.get('https://localhost:7115/api/handlingcost');
+        setHandlingCosts(response.data);
+      } catch (error) {
+        console.error('Failed to fetch handling costs', error);
+      }
+    };
+  
 
   const buildTreeData = (categories, parentId = null) => {
     return categories
@@ -203,10 +227,18 @@ const MaterialManager = () => {
       responsive: ['md'],
     },
     {
-      title: 'Tax Status',
-      dataIndex: 'taxStatus',
+      title: 'Tax Rate',
+      dataIndex: 'taxRate',
+      key: 'taxRate',
       responsive: ['md'],
-      key: 'taxStatus',
+      render: (text) => `${(text * 100).toFixed(0)}%`,
+    },
+    {
+      title: 'Handling Cost',
+      dataIndex: 'handlingCost',
+      key: 'handlingCost',
+      responsive: ['md'],
+      render: (text) => `$${text.toFixed(2)}`,
     },
     {
       title: 'Actions',
@@ -258,6 +290,8 @@ const MaterialManager = () => {
           form={form}
           categories={categories}
           suppliers={suppliers}
+          taxRates={taxRates}
+          handlingCosts={handlingCosts}
           onSubmit={handleFormSubmit}
           onCancel={handleDrawerClose}
           isEditing={isEditing}

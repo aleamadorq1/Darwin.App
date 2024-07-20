@@ -90,7 +90,9 @@ const MainLayout = ({ children }) => {
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Header className="header">
-        <div className="logo" />
+        <div className="logo">
+          <img src="/logo-white.png" alt="Logo" style={{ height: '50px', paddingBottom:'16px' }} />
+        </div>
         {isMobile ? (
           <Button
             className="menu-button"

@@ -1,14 +1,16 @@
-// src/MaterialForm.js
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Form, Input, Select, Button, TreeSelect } from 'antd';
+import axios from 'axios';
 
 const { Option } = Select;
 
-const MaterialForm = ({ form, categories, suppliers, onSubmit, onCancel, isEditing }) => {
+const MaterialForm = ({ form, categories, suppliers, taxRates, handlingCosts, onSubmit, onCancel, isEditing }) => {
+
   useEffect(() => {
     if (!isEditing) {
       form.resetFields();
     }
+
   }, [form, isEditing]);
 
   return (
@@ -66,11 +68,30 @@ const MaterialForm = ({ form, categories, suppliers, onSubmit, onCancel, isEditi
         <Input placeholder="Please enter the unit of measure" />
       </Form.Item>
       <Form.Item
-        name="taxStatus"
-        label="Tax Status"
-        rules={[{ required: true, message: 'Please enter the tax status' }]}
+        name="taxRateId"
+        label="Tax Rate"
+        rules={[{ required: true, message: 'Please select a tax rate' }]}
       >
-        <Input placeholder="Please enter the tax status" />
+        <Select placeholder="Please select a tax rate">
+          {taxRates.map(taxRate => (
+            <Option key={taxRate.taxRateId} value={taxRate.taxRateId}>
+              {taxRate.description}
+            </Option>
+          ))}
+        </Select>
+      </Form.Item>
+      <Form.Item
+        name="handlingCostId"
+        label="Handling Cost"
+        rules={[{ required: true, message: 'Please select a handling cost' }]}
+      >
+        <Select placeholder="Please select a handling cost">
+          {handlingCosts.map(handlingCost => (
+            <Option key={handlingCost.handlingCostId} value={handlingCost.handlingCostId}>
+              {handlingCost.description}
+            </Option>
+          ))}
+        </Select>
       </Form.Item>
       <div style={{ textAlign: 'right' }}>
         <Button onClick={onCancel} style={{ marginRight: 8 }}>

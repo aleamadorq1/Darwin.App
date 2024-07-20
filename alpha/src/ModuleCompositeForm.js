@@ -31,7 +31,7 @@ const ModuleCompositeForm = ({ form, onCancel, isEditing, initialValues, fetchMo
 
   const fetchModules = async () => {
     try {
-      const response = await axios.get('https://localhost:7115/api/modules');
+      const response = await axios.get('https://localhost:7115/api/modules/index');
       setModules(response.data);
     } catch (error) {
       console.error('Error fetching modules:', error);

@@ -55,6 +55,8 @@ const ProjectCostsForm = ({ form, projectId, setLoading }) => {
             uom: material.uom,
             selectable: true,
             className: 'product-node',
+            handlingCost: material.handlingCost, // Added handling cost
+            taxRate: material.taxRate, // Added tax rate
           });
         }
       });
@@ -71,7 +73,7 @@ const ProjectCostsForm = ({ form, projectId, setLoading }) => {
   const fetchModuleOptions = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${baseURL}/modules`);
+      const response = await axios.get(`${baseURL}/modules/index`);
       setModuleOptions(response.data);
     } catch (error) {
       console.error('Error fetching module options:', error);

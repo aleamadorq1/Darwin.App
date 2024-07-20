@@ -1,6 +1,6 @@
 // src/ClientTable.js
 import React, { useEffect, useState, useRef } from 'react';
-import { Table, Button, Popconfirm, message, Typography, Divider, Input, Space } from 'antd';
+import { Table, Button, Popconfirm, message, Typography, Divider, Input, Space, Avatar } from 'antd';
 import { EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons';
 import axios from 'axios';
 import ClientForm from './ClientForm';
@@ -104,6 +104,7 @@ const ClientList = () => {
       dataIndex: 'clientName',
       key: 'clientName',
       ...getColumnSearchProps('clientName'),
+      render: (text) => <><Avatar>{text[0]}</Avatar><Text strong style={{paddingLeft:8}}>{text}</Text></>,
     },
     {
       title: 'Contact Info',

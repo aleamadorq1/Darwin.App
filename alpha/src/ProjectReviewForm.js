@@ -26,9 +26,12 @@ const ProjectReviewForm = ({ form, onSave, setLoading }) => {
         module.moduleMaterials.forEach((material, index) => {
           formData[`material_${module.moduleId}_${material.projectMaterialId}_unitPrice_${index}`] = material.unitPrice;
           formData[`material_${module.moduleId}_${material.projectMaterialId}_cifPrice_${index}`] = material.cifPrice;
+          formData[`material_${module.moduleId}_${material.projectMaterialId}_handlingCost_${index}`] = material.handlingCost;
+          formData[`material_${module.moduleId}_${material.projectMaterialId}_taxRate_${index}`] = material.taxRate;
         });
         module.moduleLabors.forEach((labor, index) => {
           formData[`labor_${module.moduleId}_${labor.projectLaborId}_hourlyRate_${index}`] = labor.hourlyRate;
+          formData[`labor_${module.moduleId}_${labor.projectLaborId}_hoursRequired_${index}`] = labor.hoursRequired;
           formData[`labor_${module.moduleId}_${labor.projectLaborId}_allowanceAmount_${index}`] = labor.allowanceAmount;
           formData[`labor_${module.moduleId}_${labor.projectLaborId}_allowanceQuantity_${index}`] = labor.allowanceQuantity;
         });
@@ -61,10 +64,13 @@ const ProjectReviewForm = ({ form, onSave, setLoading }) => {
           ...material,
           unitPrice: values[`material_${module.moduleId}_${material.projectMaterialId}_unitPrice_${index}`] ?? material.unitPrice,
           cifPrice: values[`material_${module.moduleId}_${material.projectMaterialId}_cifPrice_${index}`] ?? material.cifPrice,
+          handlingCost: values[`material_${module.moduleId}_${material.projectMaterialId}_handlingCost_${index}`] ?? material.handlingCost,
+          taxRate: values[`material_${module.moduleId}_${material.projectMaterialId}_taxRate_${index}`] ?? material.taxRate,
         })),
         moduleLabors: (module.moduleLabors || []).map((labor, index) => ({
           ...labor,
           hourlyRate: values[`labor_${module.moduleId}_${labor.projectLaborId}_hourlyRate_${index}`] ?? labor.hourlyRate,
+          hoursRequired: values[`labor_${module.moduleId}_${labor.projectLaborId}_hoursRequired_${index}`] ?? labor.hoursRequired,
           allowanceAmount: values[`labor_${module.moduleId}_${labor.projectLaborId}_allowanceAmount_${index}`] ?? labor.allowanceAmount,
           allowanceQuantity: values[`labor_${module.moduleId}_${labor.projectLaborId}_allowanceQuantity_${index}`] ?? labor.allowanceQuantity,
         }))
@@ -80,10 +86,13 @@ const ProjectReviewForm = ({ form, onSave, setLoading }) => {
               ...material,
               unitPrice: values[`material_${detail.moduleId}_${material.projectMaterialId}_unitPrice_${index}`] ?? material.unitPrice,
               cifPrice: values[`material_${detail.moduleId}_${material.projectMaterialId}_cifPrice_${index}`] ?? material.cifPrice,
+              handlingCost: values[`material_${detail.moduleId}_${material.projectMaterialId}_handlingCost_${index}`] ?? material.handlingCost,
+              taxRate: values[`material_${detail.moduleId}_${material.projectMaterialId}_taxRate_${index}`] ?? material.taxRate,
             })),
             moduleLabors: (detail.module.moduleLabors || []).map((labor, index) => ({
               ...labor,
               hourlyRate: values[`labor_${detail.moduleId}_${labor.projectLaborId}_hourlyRate_${index}`] ?? labor.hourlyRate,
+              hoursRequired: values[`labor_${detail.moduleId}_${labor.projectLaborId}_hoursRequired_${index}`] ?? labor.hoursRequired,
               allowanceAmount: values[`labor_${detail.moduleId}_${labor.projectLaborId}_allowanceAmount_${index}`] ?? labor.allowanceAmount,
               allowanceQuantity: values[`labor_${detail.moduleId}_${labor.projectLaborId}_allowanceQuantity_${index}`] ?? labor.allowanceQuantity,
             }))
@@ -118,6 +127,8 @@ const ProjectReviewForm = ({ form, onSave, setLoading }) => {
           ...material,
           unitPrice: adjustValue(material.unitPrice),
           cifPrice: adjustValue(material.cifPrice),
+          handlingCost: adjustValue(material.handlingCost),
+          taxRate: adjustValue(material.taxRate),
         }))
         : module.moduleMaterials;
 
@@ -125,13 +136,14 @@ const ProjectReviewForm = ({ form, onSave, setLoading }) => {
         ? module.moduleLabors.map((labor) => ({
           ...labor,
           hourlyRate: adjustValue(labor.hourlyRate),
+          hoursRequired: labor.hoursRequired,
           allowanceAmount: adjustValue(labor.allowanceAmount),
           allowanceQuantity: labor.allowanceQuantity,
         }))
         : module.moduleLabors;
 
       const updatedTotal = adjustedMaterials.reduce((sum, material) => sum + (material.unitPrice * material.quantity), 0)
-        + adjustedLabors.reduce((sum, labor) => sum + ((labor.hourlyRate * labor.quantity) + (labor.allowanceAmount * labor.allowanceQuantity)), 0);
+        + adjustedLabors.reduce((sum, labor) => sum + ((labor.hourlyRate * labor.hoursRequired) + (labor.allowanceAmount * labor.allowanceQuantity)) * labor.quantity, 0);
 
       return {
         ...module,
@@ -148,6 +160,8 @@ const ProjectReviewForm = ({ form, onSave, setLoading }) => {
             ...material,
             unitPrice: adjustValue(material.unitPrice),
             cifPrice: adjustValue(material.cifPrice),
+            handlingCost: adjustValue(material.handlingCost),
+            taxRate: adjustValue(material.taxRate),
           }))
           : detail.module.moduleMaterials;
 
@@ -155,13 +169,14 @@ const ProjectReviewForm = ({ form, onSave, setLoading }) => {
           ? detail.module.moduleLabors.map((labor) => ({
             ...labor,
             hourlyRate: adjustValue(labor.hourlyRate),
+            hoursRequired: labor.hoursRequired,
             allowanceAmount: adjustValue(labor.allowanceAmount),
             allowanceQuantity: labor.allowanceQuantity,
           }))
           : detail.module.moduleLabors;
 
         const updatedTotal = adjustedMaterials.reduce((sum, material) => sum + (material.unitPrice * material.quantity), 0)
-          + adjustedLabors.reduce((sum, labor) => sum + ((labor.hourlyRate * labor.quantity) + (labor.allowanceAmount * labor.allowanceQuantity)), 0);
+          + adjustedLabors.reduce((sum, labor) => sum + ((labor.hourlyRate * labor.hoursRequired) + (labor.allowanceAmount * labor.allowanceQuantity)) * labor.quantity, 0);
 
         return {
           ...detail,
@@ -196,9 +211,12 @@ const ProjectReviewForm = ({ form, onSave, setLoading }) => {
       module.moduleMaterials.forEach((material, index) => {
         formData[`material_${module.moduleId}_${material.projectMaterialId}_unitPrice_${index}`] = material.unitPrice;
         formData[`material_${module.moduleId}_${material.projectMaterialId}_cifPrice_${index}`] = material.cifPrice;
+        formData[`material_${module.moduleId}_${material.projectMaterialId}_handlingCost_${index}`] = material.handlingCost;
+        formData[`material_${module.moduleId}_${material.projectMaterialId}_taxRate_${index}`] = material.taxRate;
       });
       module.moduleLabors.forEach((labor, index) => {
         formData[`labor_${module.moduleId}_${labor.projectLaborId}_hourlyRate_${index}`] = labor.hourlyRate;
+        formData[`labor_${module.moduleId}_${labor.projectLaborId}_hoursRequired_${index}`] = labor.hoursRequired;
         formData[`labor_${module.moduleId}_${labor.projectLaborId}_allowanceAmount_${index}`] = labor.allowanceAmount;
         formData[`labor_${module.moduleId}_${labor.projectLaborId}_allowanceQuantity_${index}`] = labor.allowanceQuantity;
       });
@@ -208,9 +226,12 @@ const ProjectReviewForm = ({ form, onSave, setLoading }) => {
         detail.module.moduleMaterials.forEach((material, index) => {
           formData[`material_${detail.moduleId}_${material.projectMaterialId}_unitPrice_${index}`] = material.unitPrice;
           formData[`material_${detail.moduleId}_${material.projectMaterialId}_cifPrice_${index}`] = material.cifPrice;
+          formData[`material_${detail.moduleId}_${material.projectMaterialId}_handlingCost_${index}`] = material.handlingCost;
+          formData[`material_${detail.moduleId}_${material.projectMaterialId}_taxRate_${index}`] = material.taxRate;
         });
         detail.module.moduleLabors.forEach((labor, index) => {
           formData[`labor_${detail.moduleId}_${labor.projectLaborId}_hourlyRate_${index}`] = labor.hourlyRate;
+          formData[`labor_${detail.moduleId}_${labor.projectLaborId}_hoursRequired_${index}`] = labor.hoursRequired;
           formData[`labor_${detail.moduleId}_${labor.projectLaborId}_allowanceAmount_${index}`] = labor.allowanceAmount;
           formData[`labor_${detail.moduleId}_${labor.projectLaborId}_allowanceQuantity_${index}`] = labor.allowanceQuantity;
         });
@@ -226,13 +247,21 @@ const ProjectReviewForm = ({ form, onSave, setLoading }) => {
   const calculateTotal = (items, priceKey, quantityKey) => 
     items.reduce((sum, item) => sum + (item[priceKey] * item[quantityKey]), 0);
 
-  const calculateLaborAllowanceTotal = (items) => 
-    items.reduce((sum, item) => sum + (item.allowanceAmount * item.allowanceQuantity), 0);
-  
+  const calculateLaborTotal = (items) => 
+    items.reduce((sum, item) => sum + (((item.hourlyRate * item.hoursRequired) + (item.allowanceAmount * item.allowanceQuantity)) * item.quantity), 0);
+
+  const calculateAllowanceTotal = (items) => 
+    items.reduce((sum, item) => sum + (item.allowanceAmount * item.allowanceQuantity * item.quantity), 0);
+
+  const calculateHandlingCostTotal = (items) => 
+    items.reduce((sum, item) => sum + (item.handlingCost * item.quantity), 0);
+
+  const calculateTaxTotal = (items) => 
+    items.reduce((sum, item) => sum + (item.unitPrice * item.quantity * (item.taxRate/100)), 0);
+
   const systemCosts = data.modules.reduce((acc, module) => {
     const moduleTotal = calculateTotal(module.moduleMaterials, 'unitPrice', 'quantity') +
-                        calculateTotal(module.moduleLabors, 'hourlyRate', 'quantity') +
-                        calculateLaborAllowanceTotal(module.moduleLabors);
+                        calculateLaborTotal(module.moduleLabors);
     if (!acc[module.systemName]) {
       acc[module.systemName] = { systemName: module.systemName, systemTotal: 0 };
     }
@@ -250,20 +279,23 @@ const ProjectReviewForm = ({ form, onSave, setLoading }) => {
   const calculateCompositeTotal = (composite) => {
     return composite.compositeDetails.reduce((total, detail) => {
       const moduleTotal = calculateTotal(detail.module.moduleMaterials, 'unitPrice', 'quantity') +
-                          calculateTotal(detail.module.moduleLabors, 'hourlyRate', 'quantity') +
-                          calculateLaborAllowanceTotal(detail.module.moduleLabors);
+                          calculateLaborTotal(detail.module.moduleLabors);
       return total + (moduleTotal * detail.quantity);
     }, 0);
   };
 
   const totalMaterials = calculateTotal(data.modules.flatMap(module => module.moduleMaterials), 'unitPrice', 'quantity');
-  const totalLabor = calculateTotal(data.modules.flatMap(module => module.moduleLabors), 'hourlyRate', 'quantity');
-  const totalLaborAllowance = calculateLaborAllowanceTotal(data.modules.flatMap(module => module.moduleLabors));
+  const totalLabor = calculateLaborTotal(data.modules.flatMap(module => module.moduleLabors));
+  const totalAllowances = calculateAllowanceTotal(data.modules.flatMap(module => module.moduleLabors));
+  const totalHandlingCosts = calculateHandlingCostTotal(data.modules.flatMap(module => module.moduleMaterials));
+  const totalTaxes = calculateTaxTotal(data.modules.flatMap(module => module.moduleMaterials ));
   const totalCompositeMaterials = calculateTotal(data.modulesComposite.flatMap(composite => composite.compositeDetails.flatMap(detail => detail.module.moduleMaterials)), 'unitPrice', 'quantity');
-  const totalCompositeLabor = calculateTotal(data.modulesComposite.flatMap(composite => composite.compositeDetails.flatMap(detail => detail.module.moduleLabors)), 'hourlyRate', 'quantity');
-  const totalCompositeLaborAllowance = calculateLaborAllowanceTotal(data.modulesComposite.flatMap(composite => composite.compositeDetails.flatMap(detail => detail.module.moduleLabors)));
-  const totalProfit = (totalMaterials + totalLabor + totalCompositeMaterials + totalCompositeLabor + totalLaborAllowance + totalCompositeLaborAllowance) * profitMargin / 100;
-  const grandTotal = totalMaterials + totalLabor + totalCompositeMaterials + totalCompositeLabor + totalLaborAllowance + totalCompositeLaborAllowance + totalProfit;
+  const totalCompositeLabor = calculateLaborTotal(data.modulesComposite.flatMap(composite => composite.compositeDetails.flatMap(detail => detail.module.moduleLabors)));
+  const totalCompositeAllowances = calculateAllowanceTotal(data.modulesComposite.flatMap(composite => composite.compositeDetails.flatMap(detail => detail.module.moduleLabors)));
+  const totalCompositeHandlingCosts = calculateHandlingCostTotal(data.modulesComposite.flatMap(composite => composite.compositeDetails.flatMap(detail => detail.module.moduleMaterials)));
+  const totalCompositeTaxes = calculateTaxTotal(data.modulesComposite.flatMap(composite => composite.compositeDetails.flatMap(detail => detail.module.moduleMaterials)));
+  const totalProfit = (totalMaterials + totalLabor + totalCompositeMaterials + totalCompositeLabor) * profitMargin / 100;
+  const grandTotal = totalMaterials + totalLabor + totalCompositeMaterials + totalCompositeLabor + totalProfit;
 
   return (
     <>
@@ -303,14 +335,13 @@ const ProjectReviewForm = ({ form, onSave, setLoading }) => {
         <Collapse>
           {data.modules.map((module) => {
             const totalMaterialCost = calculateTotal(module.moduleMaterials, 'unitPrice', 'quantity');
-            const totalLaborCost = calculateTotal(module.moduleLabors, 'hourlyRate', 'quantity');
-            const totalAllowanceCost = calculateLaborAllowanceTotal(module.moduleLabors);
+            const totalLaborCost = calculateLaborTotal(module.moduleLabors);
             return (
               <Panel
                 header={
                   <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
                     <span>{module.moduleName}</span>
-                    <span>Qty: {module.quantity} | Total: {((totalMaterialCost + totalLaborCost + totalAllowanceCost) * module.quantity).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</span>
+                    <span>Qty: {module.quantity} | Total: {((totalMaterialCost + totalLaborCost) * module.quantity).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</span>
                   </div>
                 }
                 key={module.moduleId}
@@ -329,39 +360,77 @@ const ProjectReviewForm = ({ form, onSave, setLoading }) => {
                             <span><b>{material.materialName}</b></span>
                             <span>Qty: {material.quantity}</span>
                           </Space>
-                          <Form.Item
-                            name={`material_${module.moduleId}_${material.projectMaterialId}_unitPrice_${index}`}
-                            rules={[{ required: true, message: 'Please enter unit price' }]}
-                            style={{ margin: 0 }}
-                            label="Unit Price"
-                          >
-                            <InputNumber
-                              min={0}
-                              style={{ width: '100%' }}
-                              formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                              parser={value => value.replace(/\$\s?|(,*)/g, '')}
-                            />
-                          </Form.Item>
-                          <Form.Item
-                            name={`material_${module.moduleId}_${material.projectMaterialId}_cifPrice_${index}`}
-                            rules={[{ required: true, message: 'Please enter CIF price' }]}
-                            style={{ margin: 0 }}
-                            label="CIF Price"
-                          >
-                            <InputNumber
-                              min={0}
-                              style={{ width: '100%' }}
-                              formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                              parser={value => value.replace(/\$\s?|(,*)/g, '')}
-                            />
-                          </Form.Item>
+                          <Row gutter={16}>
+                            <Col span={12}>
+                              <Form.Item
+                                name={`material_${module.moduleId}_${material.projectMaterialId}_unitPrice_${index}`}
+                                rules={[{ required: true, message: 'Please enter unit price' }]}
+                                style={{ margin: 0 }}
+                                label="Unit Price"
+                              >
+                                <InputNumber
+                                  min={0}
+                                  style={{ width: '100%' }}
+                                  formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                                  parser={value => value.replace(/\$\s?|(,*)/g, '')}
+                                />
+                              </Form.Item>
+                            </Col>
+                            <Col span={12}>
+                              <Form.Item
+                                name={`material_${module.moduleId}_${material.projectMaterialId}_cifPrice_${index}`}
+                                rules={[{ required: true, message: 'Please enter CIF price' }]}
+                                style={{ margin: 0 }}
+                                label="CIF Price"
+                              >
+                                <InputNumber
+                                  min={0}
+                                  style={{ width: '100%' }}
+                                  formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                                  parser={value => value.replace(/\$\s?|(,*)/g, '')}
+                                />
+                              </Form.Item>
+                            </Col>
+                          </Row>
+                          <Row gutter={16}>
+                            <Col span={12}>
+                              <Form.Item
+                                name={`material_${module.moduleId}_${material.projectMaterialId}_handlingCost_${index}`}
+                                rules={[{ required: true, message: 'Please enter handling cost' }]}
+                                style={{ margin: 0 }}
+                                label="Handling Cost"
+                              >
+                                <InputNumber
+                                  min={0}
+                                  style={{ width: '100%' }}
+                                  formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                                  parser={value => value.replace(/\$\s?|(,*)/g, '')}
+                                />
+                              </Form.Item>
+                            </Col>
+                            <Col span={12}>
+                              <Form.Item
+                                name={`material_${module.moduleId}_${material.projectMaterialId}_taxRate_${index}`}
+                                rules={[{ required: true, message: 'Please enter tax rate' }]}
+                                style={{ margin: 0 }}
+                                label="Tax Rate"
+                              >
+                                <InputNumber
+                                  min={0}
+                                  style={{ width: '100%' }}
+                                  formatter={value => `${value}%`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                                  parser={value => value.replace(/%\s?|(,*)/g, '')}
+                                />
+                              </Form.Item>
+                            </Col>
+                          </Row>
                         </div>
                       ))}
                     </Panel>
                     <Panel header ={
                       <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
                       <span>Labor</span>
-                      <span>Total: {(totalLaborCost + totalAllowanceCost).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</span>
+                      <span>Total: {(totalLaborCost).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</span>
                     </div>}>
                       {module.moduleLabors.map((labor, index) => (
                         <div key={`labor_${module.moduleId}_${labor.projectLaborId}_${index}`} style={{ marginBottom: '16px' }}>
@@ -369,45 +438,70 @@ const ProjectReviewForm = ({ form, onSave, setLoading }) => {
                             <span><b>{labor.laborType}</b></span>
                             <span>Qty: {labor.quantity}</span>
                           </Space>
-                          <Form.Item
-                            name={`labor_${module.moduleId}_${labor.projectLaborId}_hourlyRate_${index}`}
-                            rules={[{ required: true, message: 'Please enter hourly rate' }]}
-                            style={{ margin: 0 }}
-                            label="Hourly Rate"
-                          >
-                            <InputNumber
-                              min={0}
-                              style={{ width: '100%' }}
-                              formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                              parser={value => value.replace(/\$\s?|(,*)/g, '')}
-                            />
-                          </Form.Item>
-                          <Form.Item
-                            name={`labor_${module.moduleId}_${labor.projectLaborId}_allowanceAmount_${index}`}
-                            rules={[{ required: true, message: 'Please enter allowance amount' }]}
-                            style={{ margin: 0 }}
-                            label="Daily Allowance"
-                          >
-                            <InputNumber
-                              min={0}
-                              style={{ width: '100%' }}
-                              formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                              parser={value => value.replace(/\$\s?|(,*)/g, '')}
-                            />
-                          </Form.Item>
-                          <Form.Item
-                            name={`labor_${module.moduleId}_${labor.projectLaborId}_allowanceQuantity_${index}`}
-                            rules={[{ required: true, message: 'Please enter allowance quantity' }]}
-                            style={{ margin: 0 }}
-                            label="Days"
-                          >
-                            <InputNumber
-                              min={0}
-                              style={{ width: '100%' }}
-                              formatter={value => value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                              parser={value => value.replace(/(,*)/g, '')}
-                            />
-                          </Form.Item>
+                          <Row gutter={16}>
+                            <Col span={16}>
+                              <Form.Item
+                                name={`labor_${module.moduleId}_${labor.projectLaborId}_hourlyRate_${index}`}
+                                rules={[{ required: true, message: 'Please enter hourly rate' }]}
+                                style={{ margin: 0 }}
+                                label="Hourly Rate"
+                              >
+                                <InputNumber
+                                  min={0}
+                                  style={{ width: '100%' }}
+                                  formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                                  parser={value => value.replace(/\$\s?|(,*)/g, '')}
+                                />
+                              </Form.Item>
+                            </Col>
+                            <Col span={8}>
+                              <Form.Item
+                                name={`labor_${module.moduleId}_${labor.projectLaborId}_hoursRequired_${index}`}
+                                rules={[{ required: true, message: 'Please enter hours required' }]}
+                                style={{ margin: 0 }}
+                                label="Hours"
+                              >
+                                <InputNumber
+                                  min={0}
+                                  style={{ width: '100%' }}
+                                  formatter={value => value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                                  parser={value => value.replace(/(,*)/g, '')}
+                                />
+                              </Form.Item>
+                            </Col>
+                          </Row>
+                          <Row gutter={16}>
+                            <Col span={16}>
+                              <Form.Item
+                                name={`labor_${module.moduleId}_${labor.projectLaborId}_allowanceAmount_${index}`}
+                                rules={[{ required: true, message: 'Please enter allowance amount' }]}
+                                style={{ margin: 0 }}
+                                label="Allowances"
+                              >
+                                <InputNumber
+                                  min={0}
+                                  style={{ width: '100%' }}
+                                  formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                                  parser={value => value.replace(/\$\s?|(,*)/g, '')}
+                                />
+                              </Form.Item>
+                            </Col>
+                            <Col span={8}>
+                              <Form.Item
+                                name={`labor_${module.moduleId}_${labor.projectLaborId}_allowanceQuantity_${index}`}
+                                rules={[{ required: true, message: 'Please enter allowance quantity' }]}
+                                style={{ margin: 0 }}
+                                label="Days"
+                              >
+                                <InputNumber
+                                  min={0}
+                                  style={{ width: '100%' }}
+                                  formatter={value => value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                                  parser={value => value.replace(/(,*)/g, '')}
+                                />
+                              </Form.Item>
+                            </Col>
+                          </Row>
                         </div>
                       ))}
                     </Panel>
@@ -429,14 +523,13 @@ const ProjectReviewForm = ({ form, onSave, setLoading }) => {
               <Collapse>
                 {composite.compositeDetails.map((detail) => {
                   const totalMaterialCost = calculateTotal(detail.module.moduleMaterials, 'unitPrice', 'quantity');
-                  const totalLaborCost = calculateTotal(detail.module.moduleLabors, 'hourlyRate', 'quantity');
-                  const totalAllowanceCost = calculateLaborAllowanceTotal(detail.module.moduleLabors);
+                  const totalLaborCost = calculateLaborTotal(detail.module.moduleLabors);
                   return (
                     <Panel
                       header={
                         <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
                           <span>{detail.module.moduleName}</span>
-                          <span>Qty: {detail.quantity} | Total: {((totalMaterialCost + totalLaborCost + totalAllowanceCost) * detail.quantity).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</span>
+                          <span>Qty: {detail.quantity} | Total: {((totalMaterialCost + totalLaborCost) * detail.quantity).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</span>
                         </div>
                       }
                       key={detail.moduleId}
@@ -455,39 +548,77 @@ const ProjectReviewForm = ({ form, onSave, setLoading }) => {
                                   <span><b>{material.materialName}</b></span>
                                   <span>Qty: {material.quantity}</span>
                                 </Space>
-                                <Form.Item
-                                  name={`material_${detail.moduleId}_${material.projectMaterialId}_unitPrice_${index}`}
-                                  rules={[{ required: true, message: 'Please enter unit price' }]}
-                                  style={{ margin: 0 }}
-                                  label="Unit Price"
-                                >
-                                  <InputNumber
-                                    min={0}
-                                    style={{ width: '100%' }}
-                                    formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                                    parser={value => value.replace(/\$\s?|(,*)/g, '')}
-                                  />
-                                </Form.Item>
-                                <Form.Item
-                                  name={`material_${detail.moduleId}_${material.projectMaterialId}_cifPrice_${index}`}
-                                  rules={[{ required: true, message: 'Please enter CIF price' }]}
-                                  style={{ margin: 0 }}
-                                  label="CIF Price"
-                                >
-                                  <InputNumber
-                                    min={0}
-                                    style={{ width: '100%' }}
-                                    formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                                    parser={value => value.replace(/\$\s?|(,*)/g, '')}
-                                  />
-                                </Form.Item>
+                                <Row gutter={16}>
+                                  <Col span={12}>
+                                    <Form.Item
+                                      name={`material_${detail.moduleId}_${material.projectMaterialId}_unitPrice_${index}`}
+                                      rules={[{ required: true, message: 'Please enter unit price' }]}
+                                      style={{ margin: 0 }}
+                                      label="Unit Price"
+                                    >
+                                      <InputNumber
+                                        min={0}
+                                        style={{ width: '100%' }}
+                                        formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                                        parser={value => value.replace(/\$\s?|(,*)/g, '')}
+                                      />
+                                    </Form.Item>
+                                  </Col>
+                                  <Col span={12}>
+                                    <Form.Item
+                                      name={`material_${detail.moduleId}_${material.projectMaterialId}_cifPrice_${index}`}
+                                      rules={[{ required: true, message: 'Please enter CIF price' }]}
+                                      style={{ margin: 0 }}
+                                      label="CIF Price"
+                                    >
+                                      <InputNumber
+                                        min={0}
+                                        style={{ width: '100%' }}
+                                        formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                                        parser={value => value.replace(/\$\s?|(,*)/g, '')}
+                                      />
+                                    </Form.Item>
+                                  </Col>
+                                </Row>
+                                <Row gutter={16}>
+                                  <Col span={12}>
+                                    <Form.Item
+                                      name={`material_${detail.moduleId}_${material.projectMaterialId}_handlingCost_${index}`}
+                                      rules={[{ required: true, message: 'Please enter handling cost' }]}
+                                      style={{ margin: 0 }}
+                                      label="Handling Cost"
+                                    >
+                                      <InputNumber
+                                        min={0}
+                                        style={{ width: '100%' }}
+                                        formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                                        parser={value => value.replace(/\$\s?|(,*)/g, '')}
+                                      />
+                                    </Form.Item>
+                                  </Col>
+                                  <Col span={12}>
+                                    <Form.Item
+                                      name={`material_${detail.moduleId}_${material.projectMaterialId}_taxRate_${index}`}
+                                      rules={[{ required: true, message: 'Please enter tax rate' }]}
+                                      style={{ margin: 0 }}
+                                      label="Tax Rate"
+                                    >
+                                      <InputNumber
+                                        min={0}
+                                        style={{ width: '100%' }}
+                                        formatter={value => `${value}%`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                                        parser={value => value.replace(/%\s?|(,*)/g, '')}
+                                      />
+                                    </Form.Item>
+                                  </Col>
+                                </Row>
                               </div>
                             ))}
                           </Panel>
                           <Panel header ={
                               <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%'}}>
                                 <span>Labor</span>
-                                <span>Total: {(totalLaborCost + totalAllowanceCost).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</span>
+                                <span>Total: {(totalLaborCost).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</span>
                               </div>}>
                             {detail.module.moduleLabors.map((labor, index) => (
                               <div key={`labor_${detail.moduleId}_${labor.projectLaborId}_${index}`} style={{ marginBottom: '16px' }}>
@@ -495,45 +626,70 @@ const ProjectReviewForm = ({ form, onSave, setLoading }) => {
                                   <span><b>{labor.laborType}</b></span>
                                   <span>Qty: {labor.quantity}</span>
                                 </Space>
-                                <Form.Item
-                                  name={`labor_${detail.moduleId}_${labor.projectLaborId}_hourlyRate_${index}`}
-                                  rules={[{ required: true, message: 'Please enter hourly rate' }]}
-                                  style={{ margin: 0 }}
-                                  label="Hourly Rate"
-                                >
-                                  <InputNumber
-                                    min={0}
-                                    style={{ width: '100%' }}
-                                    formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                                    parser={value => value.replace(/\$\s?|(,*)/g, '')}
-                                  />
-                                </Form.Item>
-                                <Form.Item
-                                  name={`labor_${detail.moduleId}_${labor.projectLaborId}_allowanceAmount_${index}`}
-                                  rules={[{ required: true, message: 'Please enter allowance amount' }]}
-                                  style={{ margin: 0 }}
-                                  label="Daily Allowance"
-                                >
-                                  <InputNumber
-                                    min={0}
-                                    style={{ width: '100%' }}
-                                    formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                                    parser={value => value.replace(/\$\s?|(,*)/g, '')}
-                                  />
-                                </Form.Item>
-                                <Form.Item
-                                  name={`labor_${detail.moduleId}_${labor.projectLaborId}_allowanceQuantity_${index}`}
-                                  rules={[{ required: true, message: 'Please enter allowance quantity' }]}
-                                  style={{ margin: 0 }}
-                                  label="Allowance Quantity"
-                                >
-                                  <InputNumber
-                                    min={0}
-                                    style={{ width: '100%' }}
-                                    formatter={value => value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                                    parser={value => value.replace(/(,*)/g, '')}
-                                  />
-                                </Form.Item>
+                                <Row gutter={16}>
+                                  <Col span={16}>
+                                    <Form.Item
+                                      name={`labor_${detail.moduleId}_${labor.projectLaborId}_hourlyRate_${index}`}
+                                      rules={[{ required: true, message: 'Please enter hourly rate' }]}
+                                      style={{ width: "100%" }}
+                                      label="Hourly Rate"
+                                    >
+                                      <InputNumber
+                                        min={0}
+                                        style={{ width: '100%' }}
+                                        formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                                        parser={value => value.replace(/\$\s?|(,*)/g, '')}
+                                      />
+                                    </Form.Item>
+                                  </Col>
+                                  <Col span={8}>
+                                    <Form.Item
+                                      name={`labor_${detail.moduleId}_${labor.projectLaborId}_hoursRequired_${index}`}
+                                      rules={[{ required: true, message: 'Please enter hours required' }]}
+                                      style={{ width: "100%" }}
+                                      label="Hours"
+                                    >
+                                      <InputNumber
+                                        min={0}
+                                        style={{ width: '100%' }}
+                                        formatter={value => value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                                        parser={value => value.replace(/(,*)/g, '')}
+                                      />
+                                    </Form.Item>
+                                  </Col>
+                                </Row>
+                                <Row gutter={16}>
+                                  <Col span={16}>
+                                    <Form.Item
+                                      name={`labor_${detail.moduleId}_${labor.projectLaborId}_allowanceAmount_${index}`}
+                                      rules={[{ required: true, message: 'Please enter allowance amount' }]}
+                                      style={{ margin: 0 }}
+                                      label="Allowances"
+                                    >
+                                      <InputNumber
+                                        min={0}
+                                        style={{ width: '100%' }}
+                                        formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                                        parser={value => value.replace(/\$\s?|(,*)/g, '')}
+                                      />
+                                    </Form.Item>
+                                  </Col>
+                                  <Col span={8}>
+                                    <Form.Item
+                                      name={`labor_${detail.moduleId}_${labor.projectLaborId}_allowanceQuantity_${index}`}
+                                      rules={[{ required: true, message: 'Please enter allowance quantity' }]}
+                                      style={{ margin: 0 }}
+                                      label="Days"
+                                    >
+                                      <InputNumber
+                                        min={0}
+                                        style={{ width: '100%' }}
+                                        formatter={value => value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                                        parser={value => value.replace(/(,*)/g, '')}
+                                      />
+                                    </Form.Item>
+                                  </Col>
+                                </Row>
                               </div>
                             ))}
                           </Panel>
@@ -557,7 +713,8 @@ const ProjectReviewForm = ({ form, onSave, setLoading }) => {
               valueStyle={{ color: '#3f8600' }}
               prefix="$"
             />
-            <div style={{ display: 'flex', flexDirection: 'column', marginLeft: 2, padding:0, fontSize:10 }}>Includes: ${(totalLaborAllowance + totalCompositeLaborAllowance).toFixed(2)} of Taxes </div>
+            <span style={{ fontSize: 10, color: 'gray' }}>Includes: {totalTaxes.toLocaleString('en-US', { style: 'currency', currency: 'USD' })} taxes. </span><br/>
+            <span style={{ fontSize: 10, color: 'gray' }}>       + {totalHandlingCosts.toLocaleString('en-US', { style: 'currency', currency: 'USD' })} handling costs. </span>
           </Card>
         </Col>
         <Col xs={24} sm={12} style={{padding:8}}>
@@ -569,9 +726,9 @@ const ProjectReviewForm = ({ form, onSave, setLoading }) => {
               precision={2}
               valueStyle={{ color: '#3f8600' }}
               prefix="$"
-              
             />
-            <div style={{ display: 'flex', flexDirection: 'column', marginLeft: 2, padding:0, fontSize:10 }}>Includes: ${(totalLaborAllowance + totalCompositeLaborAllowance).toFixed(2)} of Allowances </div>
+            <span style={{ fontSize: 10, color: 'gray' }}>Includes: {totalAllowances.toLocaleString('en-US', { style: 'currency', currency: 'USD' })} Allowances. </span><br/>
+            <span style={{ fontSize: 10, color: 'gray' }}> Social Security </span>
           </Card>
         </Col>
       </Row>

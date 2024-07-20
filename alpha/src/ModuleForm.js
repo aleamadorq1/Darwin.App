@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Form, Button, Select, Space, InputNumber, TreeSelect, message, Input } from 'antd';
+import { Form, Button, Select, Space, InputNumber, TreeSelect, message, Input, Row, Col } from 'antd';
 import { PlusOutlined, MinusCircleOutlined } from '@ant-design/icons';
 import axios from 'axios';
 
@@ -84,8 +84,8 @@ const ModuleForm = ({ form, onCancel, isEditing, initialValues, fetchModules }) 
         moduleName: moduleResponse.data.moduleName,
         systemId: moduleResponse.data.systemId,
         description: moduleResponse.data.description,
-        labor: Array.isArray(laborResponse.data) ? laborResponse.data.map(l => ({ laborId: l.laborId, quantity: l.hoursRequired, moduleLaborId:l.moduleLaborId })) : [],
-        materials: Array.isArray(materialsResponse.data) ? materialsResponse.data.map(m => ({ materialId: m.materialId, quantity: m.quantity, moduleMaterialId:m.moduleMaterialId })) : [],
+        labor: Array.isArray(laborResponse.data) ? laborResponse.data.map(l => ({ laborId: l.laborId, hoursRequired: l.hoursRequired, quantity: l.quantity, moduleLaborId: l.moduleLaborId })) : [],
+        materials: Array.isArray(materialsResponse.data) ? materialsResponse.data.map(m => ({ materialId: m.materialId, quantity: m.quantity, moduleMaterialId: m.moduleMaterialId })) : [],
       });
 
       // Set UOMs for materials from existing materialOptions
@@ -164,8 +164,9 @@ const ModuleForm = ({ form, onCancel, isEditing, initialValues, fetchModules }) 
         moduleName,
         laborId: l.laborId,
         laborType: laborOptions.find(lab => lab.laborId === l.laborId)?.laborType || '',
-        hoursRequired: l.quantity,
-        hourlyRate: initialValues?.hourlyRate || 0
+        hoursRequired: l.hoursRequired,
+        hourlyRate: initialValues?.hourlyRate || 0,
+        quantity: l.quantity,
       })),
     };
 
@@ -247,32 +248,54 @@ const ModuleForm = ({ form, onCancel, isEditing, initialValues, fetchModules }) 
         {(fields, { add, remove }) => (
           <>
             <label>Labor</label>
-            {fields.map(({ key, name, fieldKey, ...restField }) => (
+            {fields.map(({ key, name, fieldKey, ...restField }, index) => (
               <Space key={key} style={{ display: 'flex', marginBottom: 16 }} align="baseline">
-                <Form.Item
-                  {...restField}
-                  name={[name, 'laborId']}
-                  fieldKey={[fieldKey, 'laborId']}
-                  rules={[{ required: true, message: 'Please select labor' }]}
-                >
-                  <Select placeholder="Select labor" style={{ width: 200 }}>
-                    {laborOptions.map((labor) => (
-                      <Option key={labor.laborId} value={labor.laborId}>
-                        {labor.laborType}
-                      </Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-                <Form.Item
-                  {...restField}
-                  name={[name, 'quantity']}
-                  fieldKey={[fieldKey, 'quantity']}
-                  rules={[{ required: true, message: 'Please enter quantity' }]}
-                >
-                  <InputNumber placeholder="Quantity" />
-                </Form.Item>
-                <span>hours</span>
-                <MinusCircleOutlined onClick={() => remove(name)} />
+                <Row gutter={16} style={{ width: '100%' }}>
+                  <Col span={14}>
+                    <Form.Item
+                      {...restField}
+                      name={[name, 'laborId']}
+                      key={[fieldKey, 'laborId']}
+                      rules={[{ required: true, message: 'Please select labor' }]}
+                      label={index === 0 ? 'Type' : ''}
+                    >
+                      <Select placeholder="Select labor" style={{ width: '100%' }}>
+                        {laborOptions.map((labor) => (
+                          <Option key={labor.laborId} value={labor.laborId}>
+                            {labor.laborType}
+                          </Option>
+                        ))}
+                      </Select>
+                    </Form.Item>
+                  </Col>
+                  <Col span={4}>
+                    <Form.Item
+                      {...restField}
+                      name={[name, 'quantity']}
+                      key={[fieldKey, 'quantity']}
+                      label={index === 0 ? 'Qty' : ''}
+                      rules={[{ required: true, message: 'Please enter quantity' }]}
+                    >
+                      <InputNumber placeholder="Quantity" max={999} style={{ width: '100%' }} />
+                    </Form.Item>
+                  </Col>
+                  <Col span={4}>
+                    <Form.Item
+                      {...restField}
+                      name={[name, 'hoursRequired']}
+                      key={[fieldKey, 'hoursRequired']}
+                      label={index === 0 ? 'Hours' : ''}
+                      rules={[{ required: true, message: 'Please enter hours required' }]}
+                    >
+                      <InputNumber placeholder="Hours" max={999} style={{ width: '100%' }} />
+                    </Form.Item>
+                  </Col>
+                  <Col span={1}>
+                    <Form.Item>
+                      <MinusCircleOutlined onClick={() => remove(name)} style={{ marginTop: index === 0 ? 30 : 0 }} />
+                    </Form.Item>
+                  </Col>
+                </Row>
               </Space>
             ))}
             <div style={{ textAlign: 'center', marginBottom: 16 }}>
@@ -293,39 +316,48 @@ const ModuleForm = ({ form, onCancel, isEditing, initialValues, fetchModules }) 
         {(fields, { add, remove }) => (
           <>
             <label>Materials</label>
-            {fields.map(({ key, name, fieldKey, ...restField }) => (
+            {fields.map(({ key, name, fieldKey, ...restField }, index) => (
               <Space key={key} style={{ display: 'flex', marginBottom: 16 }} align="baseline">
-                <Form.Item
-                  {...restField}
-                  name={[name, 'materialId']}
-                  fieldKey={[fieldKey, 'materialId']}
-                  rules={[{ required: true, message: 'Please select material' }]}
-                >
-                  <TreeSelect
-                    placeholder="Select material"
-                    treeData={materialOptions}
-                    treeDefaultExpandAll
-                    showSearch
-                    style={{ width: 200 }}
-                    filterTreeNode={(input, treeNode) =>
-                      treeNode.title.toLowerCase().indexOf(input.toLowerCase()) >= 0
-                    }
-                    onChange={(value) => handleMaterialChange(value, key)}
-                    treeNodeFilterProp="title"
-                    treeNodeLabelProp="title"
-                    className={(node) => (node.className ? node.className : '')}
-                  />
-                </Form.Item>
-                <Form.Item
-                  {...restField}
-                  name={[name, 'quantity']}
-                  fieldKey={[fieldKey, 'quantity']}
-                  rules={[{ required: true, message: 'Please enter quantity' }]}
-                >
-                  <InputNumber placeholder="Quantity" />
-                </Form.Item>
-                <span>{materialUOMs[form.getFieldValue(['materials', key, 'materialId'])]}</span>
-                <MinusCircleOutlined onClick={() => remove(name)} />
+                <Row gutter={24} style={{ width: '100%' }}>
+                  <Col span={16}>
+                    <Form.Item
+                      {...restField}
+                      name={[name, 'materialId']}
+                      key={[fieldKey, 'materialId']}
+                      rules={[{ required: true, message: 'Please select material' }]}
+                    >
+                      <TreeSelect
+                        placeholder="Select material"
+                        treeData={materialOptions}
+                        treeDefaultExpandAll
+                        showSearch
+                        style={{ minWidth: "16em" }} 
+                        filterTreeNode={(input, treeNode) =>
+                          treeNode.title.toLowerCase().indexOf(input.toLowerCase()) >= 0
+                        }
+                        onChange={(value) => handleMaterialChange(value, key)}
+                        treeNodeFilterProp="title"
+                        treeNodeLabelProp="title"
+                        className={(node) => (node.className ? node.className : '')}
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col span={6}>
+                    <Form.Item
+                      {...restField}
+                      name={[name, 'quantity']}
+                      key={[fieldKey, 'quantity']}
+                      rules={[{ required: true, message: 'Please enter quantity' }]}
+                    >
+                      <InputNumber placeholder="Qty" style={{ width: '100%' }} suffix={materialUOMs[form.getFieldValue(['materials', key, 'materialId'])]}/>
+                    </Form.Item>
+                  </Col>
+                  <Col span={1}>
+                    <Form.Item>
+                      <MinusCircleOutlined onClick={() => remove(name)} style={{ marginTop: index === 0 ? 30 : 0 }} />
+                    </Form.Item>
+                  </Col>
+                </Row>
               </Space>
             ))}
             <div style={{ textAlign: 'center', marginBottom: 16 }}>
